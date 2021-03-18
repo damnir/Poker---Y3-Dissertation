@@ -37,9 +37,11 @@ public class Player : NetworkedBehaviour
 
         GameObject seat = GameObject.Find(bb);
 
-        this.transform.SetParent(GameObject.Find("Canvas").transform);
+        this.transform.SetParent(GameObject.Find("Lobby01").transform);
         this.transform.position = seat.transform.position;
-        this.transform.localScale = seat.transform.localScale;
+        //this.transform.localScale = seat.transform.localScale;
+
+        this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
         if(isOwner){
