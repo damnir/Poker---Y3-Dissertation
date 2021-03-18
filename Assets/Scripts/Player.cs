@@ -15,6 +15,7 @@ public class Player : NetworkedBehaviour
     public GameObject card2 {get; set;}
 
     DataManager dataManager;
+    Lobbies lobbies;
 
     public GameObject objectReference;
     public Transform objectTransform;
@@ -23,8 +24,14 @@ public class Player : NetworkedBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        data = GameObject.Find("DataManager");
-        dataManager = data.GetComponent<DataManager>();
+        //data = GameObject.Find("Lobby01");
+        //dataManager = data.GetComponent<DataManager>();
+
+
+        GameObject kk = GameObject.Find("Lobbies");
+        lobbies = kk.GetComponent<Lobbies>();
+
+        dataManager = lobbies.getLobby(0).GetComponent<DataManager>();
 
         string bb = dataManager.nextFreeSeat();
 
@@ -40,7 +47,6 @@ public class Player : NetworkedBehaviour
             randomCard("Card2");
             //GameObject buttons = GameObject.Find("Buttons");
             //buttons.SetActive(true);
-
         }
 
     }
