@@ -13,7 +13,7 @@ public class DataManager : NetworkedBehaviour
 
     private static int maxPlayers;
     //keep gameobject references of all players that join the game
-    private static GameObject[] players = new GameObject[maxPlayers];
+    public GameObject[] players = new GameObject[5];
     private static GameObject[] seats = new GameObject[maxPlayers];
     //reference to script component of player
     private static Player player; 
@@ -51,6 +51,13 @@ public class DataManager : NetworkedBehaviour
     // Update is called once per frame
     void Update()
     {
+        /*if (isClient) {
+            Debug.Log("CLIENT");
+            Debug.Log(NetworkingManager.Singleton.LocalClientId);
+        }
+        if (isServer) {
+            Debug.Log("SERVER");
+        }*/
     }
 
     public void test(){

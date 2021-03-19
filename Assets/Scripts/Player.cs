@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using MLAPI;
+using MLAPI.Messaging;
+
 
 public class Player : NetworkedBehaviour
 {
     private static string username {get; set;}
-    private static int clientID {get; set;}
+    private static int clientID;
     private static int cash {get; set;}
     
     public GameObject data {get; set;}
@@ -21,9 +23,21 @@ public class Player : NetworkedBehaviour
     public Transform objectTransform;
     public Text objectText;
 
+    public GameObject po;
+    //public int poo;
+
+    GameObject lobby01;
+    GameObject lobby02;
+
+            public string Channel = "MLAPI_DEFAULT_MESSAGE";
+
+
+
     // Start is called before the first frame update
     void Start()
     {
+
+
         //data = GameObject.Find("Lobby01");
         //dataManager = data.GetComponent<DataManager>();
 
@@ -43,20 +57,28 @@ public class Player : NetworkedBehaviour
 
         this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
+        GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject);
+
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
         if(isOwner){
             randomCard("Card1");
             randomCard("Card2");
             //GameObject buttons = GameObject.Find("Buttons");
             //buttons.SetActive(true);
+            //GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject.GetComponent<NetworkedObject>());
         }
 
+         //add player to connected players list in lobbies GO
+
+
     }
+
+    public ulong getPlayerID () { return OwnerClientId; }
 
     // Update is called once per frame
     void Update()
     {
-
+        
     }
 
     void changeText(string objectName, string newText)
@@ -75,7 +97,6 @@ public class Player : NetworkedBehaviour
 
         objectTransform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
 
-
         Image objectImage = objectReference.GetComponent<Image>();
         int r = Random.Range(0, 51);
         string randomCardc = dataManager.deck[r];
@@ -83,6 +104,35 @@ public class Player : NetworkedBehaviour
         Debug.Log("Random Card: " + randomCardc);
     }
 
+    public void poo(GameObject loo) {
+        if (IsClient)
+            {
+                // If we are a client. (A client can be either a normal client or a HOST), we want to send a ServerRPC. ServerRPCs does work for host to make code consistent.
+                InvokeServerRpc(SendPositionToServer, loo, Channel);
+            }
+        else if (IsServer)
+            {
+                // This is a strict server with no client attached. We can thus send the ClientRPC straight away without the server inbetween.
+                InvokeClientRpcOnEveryone(changeLobby, loo, Channel);
+            }
+    }
 
+    [ServerRPC(RequireOwnership = true)]
+    public void SendPositionToServer(GameObject position)
+    {
+        // This code gets ran on the server at the request of clients or the host
+
+        // Tell every client EXCEPT the owner (since they are the ones that actually send the position) to apply the new position
+        InvokeClientRpcOnEveryone(changeLobby, position, Channel);
+    }
+
+    //public void changeLobby(transform newLobby)
+    [ClientRPC]
+    public void changeLobby(GameObject position)
+    {
+        // This code gets ran on the clients at the request of the server.
+
+        this.transform.SetParent(position.transform);
+    }
     
 }
