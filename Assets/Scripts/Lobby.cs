@@ -40,6 +40,10 @@ public class Lobby : NetworkedBehaviour
 
     public void onOneClick() {
 
+        GameObject.Find("Menu").SetActive(false);
+
+        GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
+        player.GetComponent<Player>().poo(GameObject.Find("Lobby01"));
         /*
         GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
 
@@ -79,7 +83,7 @@ public class Lobby : NetworkedBehaviour
             go.transform.SetParent(GameObject.Find("Lobby02").transform);*/
         GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
         player.GetComponent<Player>().poo(GameObject.Find("Lobby02"));
-        
+        GameObject.Find("Menu").SetActive(false);        
     }
 
 

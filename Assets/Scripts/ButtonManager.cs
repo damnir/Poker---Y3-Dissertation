@@ -18,6 +18,7 @@ public class ButtonManager : NetworkedBehaviour
     public GameObject buttonServer;
     public GameObject buttonClient;
     public GameObject buttonLobby2;
+    public GameObject lobbyList;
 
     public GameObject data;
     int test = 0;
@@ -27,26 +28,24 @@ public class ButtonManager : NetworkedBehaviour
         NetworkingManager.Singleton.StartServer();
         buttonServer.SetActive(false);
         buttonClient.SetActive(false);
+        //data.SetActive(true);
 
-                    using (PooledBitStream stream = PooledBitStream.Get())
-            {
-                using (PooledBitWriter writer = PooledBitWriter.Get(stream))
-                {
-                    writer.WriteInt32Packed(Random.Range(-50, 50));
-
-                    InvokeServerRpcPerformance(MyServerRPC, stream);
-                }
-            }
+        //GameObject.Find("Menu").SetActive(false);
 
     }
 
     public void onClientClicker()
     {
+        lobbyList.SetActive(true);
+
         NetworkingManager.Singleton.StartClient();
         //test ++;
         //Debug.Log("Clients connected: " + clientId);
         buttonClient.SetActive(false);
         buttonServer.SetActive(false);
+
+                //data.SetActive(true);
+                
 
         //if (isClient) {
             Debug.Log(" --- I AM CLIENT ---" + NetworkingManager.Singleton.LocalClientId);

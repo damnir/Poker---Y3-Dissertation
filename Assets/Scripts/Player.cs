@@ -37,11 +37,24 @@ public class Player : NetworkedBehaviour
     void Start()
     {
 
+        //this.gameObject.SetActive(false);
+
+
+        this.name = "PL" + OwnerClientId;
+
+        if(isOwner){
+
+            Text t1 = GameObject.Find("CLIENT_TEXT").GetComponent<Text>();
+            Text t2 = GameObject.Find("CLIENT_TEXT2").GetComponent<Text>();
+
+            t1.text = "Client ID: " + OwnerClientId;
+            t2.text = "Client ID: " + OwnerClientId;
+        }
 
         //data = GameObject.Find("Lobby01");
         //dataManager = data.GetComponent<DataManager>();
 
-
+        
         GameObject kk = GameObject.Find("Lobbies");
         lobbies = kk.GetComponent<Lobbies>();
 
@@ -117,10 +130,12 @@ public class Player : NetworkedBehaviour
             }
     }
 
-    [ServerRPC(RequireOwnership = true)]
+    [ServerRPC(RequireOwnership = false)]
     public void SendPositionToServer(GameObject position)
     {
         // This code gets ran on the server at the request of clients or the host
+        this.gameObject.GetComponent<NetworkedObject>().NetworkShow(NetworkingManager.Singleton.LocalClientId);
+        //this.gameObject.GetComponent<NetworkedObject>().NetworkShow(clientId);
 
         // Tell every client EXCEPT the owner (since they are the ones that actually send the position) to apply the new position
         InvokeClientRpcOnEveryone(changeLobby, position, Channel);
@@ -131,8 +146,10 @@ public class Player : NetworkedBehaviour
     public void changeLobby(GameObject position)
     {
         // This code gets ran on the clients at the request of the server.
-
+        this.gameObject.SetActive(true);
         this.transform.SetParent(position.transform);
+
+        position.GetComponent<DataManager>().addPlayer(this.gameObject);
     }
     
 }

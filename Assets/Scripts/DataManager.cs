@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using MLAPI;
+using MLAPI.NetworkedVar.Collections;
+using MLAPI.Messaging;
+
 
 public class DataManager : NetworkedBehaviour
 {
@@ -13,7 +16,7 @@ public class DataManager : NetworkedBehaviour
 
     private static int maxPlayers;
     //keep gameobject references of all players that join the game
-    public GameObject[] players = new GameObject[5];
+    public NetworkedList<GameObject> players;
     private static GameObject[] seats = new GameObject[maxPlayers];
     //reference to script component of player
     private static Player player; 
@@ -32,6 +35,8 @@ public class DataManager : NetworkedBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        players = new NetworkedList<GameObject>();
+
         seat1S = seat1.GetComponent<Seat>();
         seat2S = seat2.GetComponent<Seat>();
         seat3S = seat3.GetComponent<Seat>();
@@ -41,11 +46,38 @@ public class DataManager : NetworkedBehaviour
 
         generateDeck();
         shuffleDeck();
+            foreach (string c in deck)
+            {
+                Debug.Log(c);
+            }
 
-        foreach (string c in deck)
-        {
-            Debug.Log(c);
+        /*
+        if (isServer) {
+
+
+            InvokeClientRpcOnEveryone(syncDeck, deck);
         }
+
+        if (isClient) {
+            InvokeServerRpc(clientStart);
+        }*/
+
+
+    }
+
+    void NetworkStart()
+    {
+        
+    }
+
+    [ServerRPC]
+    void clientStart() {
+        InvokeClientRpcOnEveryone(syncDeck, deck);
+    }
+
+    [ClientRPC]
+    void syncDeck(List<string> newDeck) {
+        this.deck = newDeck;
     }
 
     // Update is called once per frame
@@ -58,6 +90,14 @@ public class DataManager : NetworkedBehaviour
         if (isServer) {
             Debug.Log("SERVER");
         }*/
+    }
+
+    public void addPlayer(GameObject player) {
+        foreach (GameObject pl in players)
+        {
+            pl.GetComponent<Player>().poo(this.gameObject);
+        }
+        players.Add(player);
     }
 
     public void test(){
