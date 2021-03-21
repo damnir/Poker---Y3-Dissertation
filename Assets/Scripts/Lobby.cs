@@ -43,48 +43,15 @@ public class Lobby : NetworkedBehaviour
         GameObject.Find("Menu").SetActive(false);
 
         GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
-        player.GetComponent<Player>().poo(GameObject.Find("Lobby01"));
-        /*
-        GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
+        player.GetComponent<Player>().poo(lobbyManager.lobbies[0]);
 
-        //NetworkedObject player = GetLocalPlayerObject();
-        player.GetComponent<NetworkedObject>().transform.SetParent(GameObject.Find("Lobby01").transform);
-        player.transform.SetParent(GameObject.Find("Lobby01").transform);
-
-        //if (isClient) {
-            //Player player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
-            //player.transform.SetParent(GameObject.Find("Lobby01").transform);
-            /*GameObject go = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
-            go.GetComponent<NetworkedObject>().SpawnAsPlayerObject(NetworkingManager.Singleton.LocalClientId);
-            //go.GetComponent<NetworkedObject>().Spawn();
-            go.transform.SetParent(GameObject.Find("Lobby01").transform);
-            NetworkedObject netObject = go.GetComponent<NetworkedObject>();
-            netObject.NetworkShow(2);
-            netObject.NetworkShow(3);
-            netObject.NetworkShow(4);
-            netObject.NetworkShow(5);*/
-        //}
     }
 
     public void onTwoClick() {
-        /*
-        //if (isClient) {
-        GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
 
-        //NetworkedObject player = GetLocalPlayerObject();
-        player.GetComponent<NetworkedObject>().transform.SetParent(GameObject.Find("Lobby02").transform);
-        player.transform.SetParent(GameObject.Find("Lobby02").transform);
-
-            /*
-            //Player player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
-            //player.transform.SetParent(GameObject.Find("Lobby02").transform);
-            GameObject go = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
-            go.GetComponent<NetworkedObject>().SpawnWithOwnership(NetworkingManager.Singleton.LocalClientId);
-            go.transform.SetParent(GameObject.Find("Lobby02").transform);*/
         GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
-        player.GetComponent<Player>().poo(GameObject.Find("Lobby02"));
+        player.GetComponent<Player>().poo(lobbyManager.lobbies[1]);
         GameObject.Find("Menu").SetActive(false);        
     }
-
 
 }

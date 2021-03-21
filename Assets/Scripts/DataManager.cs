@@ -5,24 +5,36 @@ using UnityEngine.UI;
 using MLAPI;
 using MLAPI.NetworkedVar.Collections;
 using MLAPI.Messaging;
-
+using MLAPI.NetworkedVar;
+using MLAPI.NetworkedVar.Collections;
 
 public class DataManager : NetworkedBehaviour
 {
     public GameObject seat1;
     public GameObject seat2;
     public GameObject seat3;
+    public GameObject seat4;
+    public GameObject seat5;
+    public GameObject seat6;
+    public GameObject seat7;
 
+    
+    public bool CONNECTED = false;
 
     private static int maxPlayers;
     //keep gameobject references of all players that join the game
-    public NetworkedList<GameObject> players;
     private static GameObject[] seats = new GameObject[maxPlayers];
     //reference to script component of player
     private static Player player; 
 
     private static GameObject[] river = new GameObject[5];
-    public List<string> deck;
+
+    [SyncedVar]
+    public string[] deck = new string[52];
+    [SyncedVar]
+    public GameObject[] players = new GameObject[5];
+    [SyncedVar]
+    public int playerNum = 0;
 
     public static readonly string[] suits = new string[] { "Heart", "Spade", "Diamond", "Club"};
     public static readonly string[] values = new string[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"};
@@ -31,25 +43,28 @@ public class DataManager : NetworkedBehaviour
     Seat seat1S;
     Seat seat2S;
     Seat seat3S;
+    Seat seat4S;
+    Seat seat5S;
+    Seat seat6S;
+    Seat seat7S;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        players = new NetworkedList<GameObject>();
+        //players = new NetworkedList<GameObject>();
 
         seat1S = seat1.GetComponent<Seat>();
         seat2S = seat2.GetComponent<Seat>();
         seat3S = seat3.GetComponent<Seat>();
+        seat4S = seat4.GetComponent<Seat>();
+        seat5S = seat5.GetComponent<Seat>();
+        seat6S = seat6.GetComponent<Seat>();
+        seat7S = seat7.GetComponent<Seat>();
 
-        Debug.Log("Seat 1 taken? " + seat1S.isTaken());
-        Debug.Log("Seat 1 taken? " + seat1S.isTaken());
 
-        generateDeck();
-        shuffleDeck();
-            foreach (string c in deck)
-            {
-                Debug.Log(c);
-            }
+        ///Debug.Log("Seat 1 taken? " + seat1S.isTaken());
+        //Debug.Log("Seat 1 taken? " + seat1S.isTaken());
 
         /*
         if (isServer) {
@@ -65,24 +80,54 @@ public class DataManager : NetworkedBehaviour
 
     }
 
-    void NetworkStart()
-    {
-        
+    public override void NetworkStart() {
+        Debug.Log("NETWORK START - Data Manager");
+
+        if(isOwner) {
+            generateDeck();
+            shuffleDeck();
+        }
+
+        if(isClient) {
+            Debug.Log("Data Manager - is client");
+            InvokeServerRpc(clientStart);
+        }
+
     }
 
     [ServerRPC]
     void clientStart() {
-        InvokeClientRpcOnEveryone(syncDeck, deck);
+
+        /*
+        TEST.Value ++;
+        Debug.Log("server RPC: " + TEST);
+
+        InvokeClientRpcOnEveryone(syncDeck, TEST);*/
     }
 
     [ClientRPC]
-    void syncDeck(List<string> newDeck) {
-        this.deck = newDeck;
+    void syncDeck(NetworkedVar<int> i) {
+        /*
+        Debug.Log("client RPC: " + TEST);
+
+        //Debug.Log("Receiving client id: " + NetworkingManager.Singleton.LocalClientId);
+        TEST = i;
+        //deck = i;*/
     }
 
     // Update is called once per frame
     void Update()
     {
+        //Debug.Log("Test Value: " + TEST.Value);
+
+            /*
+            foreach (string c in deck)
+            {
+                Debug.Log(c);
+            }*/
+
+            //InvokeClientRpcOnEveryone(syncDeck, 1);
+        
         /*if (isClient) {
             Debug.Log("CLIENT");
             Debug.Log(NetworkingManager.Singleton.LocalClientId);
@@ -93,11 +138,8 @@ public class DataManager : NetworkedBehaviour
     }
 
     public void addPlayer(GameObject player) {
-        foreach (GameObject pl in players)
-        {
-            pl.GetComponent<Player>().poo(this.gameObject);
-        }
-        players.Add(player);
+        players[playerNum] = player;
+        playerNum++;
     }
 
     public void test(){
@@ -118,6 +160,22 @@ public class DataManager : NetworkedBehaviour
         if (!seat3S.isTaken())
         {
             return ("Seat (2)");
+        }
+                if (!seat4S.isTaken())
+        {
+            return ("Seat (3)");
+        }
+                if (!seat6S.isTaken())
+        {
+            return ("Seat (4)");
+        }
+                if (!seat6S.isTaken())
+        {
+            return ("Seat (5)");
+        }
+                if (!seat7S.isTaken())
+        {
+            return ("Seat (6)");
         }
         else
             return("na");
@@ -142,11 +200,14 @@ public class DataManager : NetworkedBehaviour
 
     public void generateDeck()
     {
+        int i = 0;
         foreach (string s in suits)
         {
             foreach (string v in values)
             {
-                deck.Add (s + v);
+                deck[i] = s + v;
+                i++;
+                //deck.Add (s + v);
             }
         }
     }

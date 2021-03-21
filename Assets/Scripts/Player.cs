@@ -9,7 +9,7 @@ using MLAPI.Messaging;
 public class Player : NetworkedBehaviour
 {
     private static string username {get; set;}
-    private static int clientID;
+    public int clientID;
     private static int cash {get; set;}
     
     public GameObject data {get; set;}
@@ -39,7 +39,7 @@ public class Player : NetworkedBehaviour
 
         //this.gameObject.SetActive(false);
 
-
+        //clientID = OwnerClientId;
         this.name = "PL" + OwnerClientId;
 
         if(isOwner){
@@ -74,8 +74,8 @@ public class Player : NetworkedBehaviour
 
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
         if(isOwner){
-            randomCard("Card1");
-            randomCard("Card2");
+            /////randomCard("Card1");
+            //////randomCard("Card2");
             //GameObject buttons = GameObject.Find("Buttons");
             //buttons.SetActive(true);
             //GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject.GetComponent<NetworkedObject>());

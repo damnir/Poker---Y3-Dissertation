@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MLAPI;
 using MLAPI.Connection;
+using MLAPI.NetworkedVar;
 
 public class Lobbies : NetworkedBehaviour
 { 
@@ -10,10 +11,17 @@ public class Lobbies : NetworkedBehaviour
     
     public List<GameObject> connectedPlayers;
 
+    [SyncedVar]
+    public int i;
+
+    public override void NetworkStart() {
+        i++;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
-       
+       i++;
     }
 
     // Update is called once per frame
@@ -23,6 +31,7 @@ public class Lobbies : NetworkedBehaviour
     }
 
     public void addPlayer(GameObject pp){
+        i++;
         connectedPlayers.Add(pp);
         //connectedPlayers.Add(pp);
     }
