@@ -43,7 +43,7 @@ public class Lobby : NetworkedBehaviour
         GameObject.Find("Menu").SetActive(false);
 
         GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
-        player.GetComponent<Player>().poo(lobbyManager.lobbies[0]);
+        player.GetComponent<Player>().changeLobby(lobbyManager.lobbies[0]);
 
         foreach(GameObject room in lobbyManager.lobbies)
         {
@@ -58,7 +58,7 @@ public class Lobby : NetworkedBehaviour
     public void onTwoClick() {
 
         GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
-        player.GetComponent<Player>().poo(lobbyManager.lobbies[1]);
+        player.GetComponent<Player>().changeLobby(lobbyManager.lobbies[1]);
         GameObject.Find("Menu").SetActive(false);
 
         foreach (GameObject room in lobbyManager.lobbies)

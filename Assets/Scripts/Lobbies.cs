@@ -11,17 +11,15 @@ public class Lobbies : NetworkedBehaviour
     
     public List<GameObject> connectedPlayers;
 
-    [SyncedVar]
-    public int i;
+    public override void NetworkStart() 
+    {
 
-    public override void NetworkStart() {
-        i++;
     }
 
     // Start is called before the first frame update
     void Start()
     {
-       i++;
+
     }
 
     // Update is called once per frame
@@ -30,14 +28,14 @@ public class Lobbies : NetworkedBehaviour
         
     }
 
-    public void addPlayer(GameObject pp){
-        i++;
+    public void addPlayer(GameObject pp)
+    {
         connectedPlayers.Add(pp);
-        //connectedPlayers.Add(pp);
     }
 
-    public void addPlayerToLobby(int lobby, GameObject player) {
-        //--------------z\ lobbies[lobby].GetComponent<DataManager>().addPlayer(player);
+    public void addPlayerToLobby(int lobby, GameObject player)
+    {
+      
     }
 
     public GameObject getLobby(int i)
