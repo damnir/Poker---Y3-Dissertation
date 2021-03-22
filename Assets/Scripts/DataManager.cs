@@ -147,33 +147,33 @@ public class DataManager : NetworkedBehaviour
     }
 
     public string nextFreeSeat(){
-        if (!seat1S.isTaken())
+        if (playerNum == 1)
         {
             seat1S.setTaken(true);
             return ("Seat");
         }
-        if (!seat2S.isTaken())
+        if (playerNum == 2)
         {
             seat2S.setTaken(true);
             return ("Seat (1)");
         }
-        if (!seat3S.isTaken())
+        if (playerNum == 3)
         {
             return ("Seat (2)");
         }
-                if (!seat4S.isTaken())
+                if (playerNum == 4)
         {
             return ("Seat (3)");
         }
-                if (!seat6S.isTaken())
+                if (playerNum == 5)
         {
             return ("Seat (4)");
         }
-                if (!seat6S.isTaken())
+                if (playerNum == 6)
         {
             return ("Seat (5)");
         }
-                if (!seat7S.isTaken())
+                if (playerNum == 7)
         {
             return ("Seat (6)");
         }

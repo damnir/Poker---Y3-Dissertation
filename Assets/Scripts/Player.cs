@@ -57,7 +57,7 @@ public class Player : NetworkedBehaviour
         
         GameObject kk = GameObject.Find("Lobbies");
         lobbies = kk.GetComponent<Lobbies>();
-
+        /*
         dataManager = lobbies.getLobby(0).GetComponent<DataManager>();
 
         string bb = dataManager.nextFreeSeat();
@@ -68,9 +68,11 @@ public class Player : NetworkedBehaviour
         this.transform.position = seat.transform.position;
         //this.transform.localScale = seat.transform.localScale;
 
-        this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);*/
 
         GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject);
+        transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
 
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
         if(isOwner){
@@ -130,26 +132,58 @@ public class Player : NetworkedBehaviour
             }
     }
 
-    [ServerRPC(RequireOwnership = false)]
+    [ServerRPC(RequireOwnership = true)]
     public void SendPositionToServer(GameObject position)
     {
+        position.GetComponent<DataManager>().addPlayer(this.gameObject);
+
         // This code gets ran on the server at the request of clients or the host
         this.gameObject.GetComponent<NetworkedObject>().NetworkShow(NetworkingManager.Singleton.LocalClientId);
         //this.gameObject.GetComponent<NetworkedObject>().NetworkShow(clientId);
 
+        this.transform.SetParent(position.transform);
+
+        dataManager = position.GetComponent<DataManager>();
+
+        string bb = dataManager.nextFreeSeat();
+
+        GameObject seat = GameObject.Find(bb);
+
+        //this.transform.SetParent(GameObject.Find("Lobby01").transform);
+        this.transform.position = seat.transform.position;
+        //this.transform.localScale = seat.transform.localScale;
+
+        this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
+        //position.GetComponent<DataManager>().addPlayer(this.gameObject);
+
+        this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
+
         // Tell every client EXCEPT the owner (since they are the ones that actually send the position) to apply the new position
-        InvokeClientRpcOnEveryone(changeLobby, position, Channel);
+        InvokeClientRpcOnEveryone(changeLobby, position, bb, Channel);
     }
 
     //public void changeLobby(transform newLobby)
     [ClientRPC]
-    public void changeLobby(GameObject position)
+    public void changeLobby(GameObject position, string bb)
     {
         // This code gets ran on the clients at the request of the server.
-        this.gameObject.SetActive(true);
+        //this.gameObject.SetActive(true);
         this.transform.SetParent(position.transform);
 
-        position.GetComponent<DataManager>().addPlayer(this.gameObject);
+        dataManager = position.GetComponent<DataManager>();
+
+        //string bb = dataManager.nextFreeSeat();
+
+        GameObject seat = GameObject.Find(bb);
+
+        //this.transform.SetParent(GameObject.Find("Lobby01").transform);
+        this.transform.position = seat.transform.position;
+        //this.transform.localScale = seat.transform.localScale;
+
+        this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
     }
     
 }

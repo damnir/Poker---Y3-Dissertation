@@ -45,13 +45,29 @@ public class Lobby : NetworkedBehaviour
         GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
         player.GetComponent<Player>().poo(lobbyManager.lobbies[0]);
 
+        foreach(GameObject room in lobbyManager.lobbies)
+        {
+            if (room.name != "Lobby01")
+            {
+                room.SetActive(false);
+            }
+        }
+
     }
 
     public void onTwoClick() {
 
         GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
         player.GetComponent<Player>().poo(lobbyManager.lobbies[1]);
-        GameObject.Find("Menu").SetActive(false);        
+        GameObject.Find("Menu").SetActive(false);
+
+        foreach (GameObject room in lobbyManager.lobbies)
+        {
+            if (room.name != "Lobby02")
+            {
+                room.SetActive(false);
+            }
+        }
     }
 
 }
