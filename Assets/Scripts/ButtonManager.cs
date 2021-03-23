@@ -19,6 +19,10 @@ public class ButtonManager : NetworkedBehaviour
     public GameObject lobbyList;
     public GameObject data;
 
+    void Start() {
+        //NetworkingManager.Singleton.StartServer();
+    }
+
     public void onServerClicked()
     {
         NetworkingManager.Singleton.StartServer();

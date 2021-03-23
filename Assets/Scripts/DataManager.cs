@@ -65,6 +65,7 @@ public class DataManager : NetworkedBehaviour
 
     public void addPlayer(GameObject player) {
         players[playerNum] = player;
+        Debug.Log("Added player: " + player.name);
         playerNum++;
     }
 
