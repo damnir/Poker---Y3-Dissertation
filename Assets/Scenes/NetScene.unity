@@ -256,7 +256,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   connectedPlayers: []
-  i: 0
 --- !u!1 &83463104 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7126499962851112579, guid: a167620ad83590f44a558147c7d6daa8,
@@ -1588,7 +1587,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MessageBufferSize: 5120
   MaxConnections: 100
-  ConnectAddress: 127.0.0.1
+  ConnectAddress: 192.168.0.12
   ConnectPort: 7777
   ServerListenPort: 7777
   ServerWebsocketListenPort: 8887

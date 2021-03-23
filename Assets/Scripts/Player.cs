@@ -9,6 +9,7 @@ using MLAPI.Messaging;
 public class Player : NetworkedBehaviour
 {
     public int clientID;
+    string currentSeat;
 
     DataManager dataManager;
     Lobbies lobbies;
@@ -18,9 +19,13 @@ public class Player : NetworkedBehaviour
     void Start()
     {
 
+    }
+
+    public override void NetworkStart() {
+        //changeLobby(GameObject.Find("Lobby01"));
         this.name = "PL" + OwnerClientId;
 
-        if(isOwner){
+        if(IsOwner){
 
             Text t1 = GameObject.Find("CLIENT_TEXT").GetComponent<Text>();
             Text t2 = GameObject.Find("CLIENT_TEXT2").GetComponent<Text>();
@@ -30,16 +35,16 @@ public class Player : NetworkedBehaviour
         }
 
         GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject);
+        
         transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
 
         //Just for testing purposes 
-        if(isOwner){
+        if(IsOwner){
             randomCard("Card1");
             randomCard("Card2");
         }
-
     }
 
     public ulong getPlayerID () { return OwnerClientId; }
@@ -47,7 +52,7 @@ public class Player : NetworkedBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        //InvokeServerRpc(syncPositionServer, Channel)
     }
 
     void changeText(string objectName, string newText)
@@ -90,6 +95,18 @@ public class Player : NetworkedBehaviour
             }
     }
 
+    [ServerRPC]
+    public void syncPositionServer() {
+        this.transform.position = this.transform.parent.position;
+        InvokeClientRpcOnEveryone(syncPositionClient, Channel);
+    }
+
+    [ClientRPC]
+    public void syncPositionClient() {
+        this.transform.position = this.transform.parent.position;
+    }
+
+
     [ServerRPC(RequireOwnership = true)]
     public void changeLobbyServer(GameObject lobby)
     {
@@ -97,6 +114,7 @@ public class Player : NetworkedBehaviour
 
         dataManager.addPlayer(this.gameObject);
         string seatName = dataManager.nextFreeSeat();
+        //currentSeat = seatName;
 
         sync(seatName, lobby);
         // Tell every client
