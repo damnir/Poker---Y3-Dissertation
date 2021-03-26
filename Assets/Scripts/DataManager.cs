@@ -16,12 +16,6 @@ public class DataManager : NetworkBehaviour
 
     private static GameObject[] river = new GameObject[5];
 
-  //  [SyncedVar]
-    //public string[] deck = new string[52];
-   // [SyncedVar]
-    //public GameObject[] players = new GameObject[5];
-    //[SyncedVar]
-    //public int playerNum = 0;
     public NetworkVariableInt playerNum = new NetworkVariableInt();
 
     public static readonly string[] suits = new string[] { "Heart", "Spade", "Diamond", "Club"};
@@ -46,30 +40,20 @@ public class DataManager : NetworkBehaviour
     {
         Debug.Log("NETWORK START - Data Manager");
 
-        if(IsOwner) {
+        if(IsServer) {
             generateDeck();
             shuffleDeck();
         }
 
         if(IsClient) {
             Debug.Log("Data Manager - is client");
-            //InvokeServerRpc(clientStart);
         }
 
     }
 
-/*
-    [ServerRpc]
-    void clientStart() 
-    {
-
+    public int getPlayerNum() {
+        return playerNum.Value;
     }
-
-    [ClientRpc]
-    void syncDeck(int i)
-    {
-
-    }*/
 
     // Update is called once per frame
     void Update()

@@ -300,6 +300,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 5662443223930251155, guid: ee2956842225961429d6de77c5a10f1d,
     type: 3}
+  lobby: {fileID: 1469605373}
+  text: {fileID: 489311758}
   clicked: 0
 --- !u!1 &217664207
 GameObject:
@@ -884,6 +886,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &489311758 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9082581864687815676, guid: 9ac7f92b575ae5e4f8cef62b692bc0aa,
+    type: 3}
+  m_PrefabInstance: {fileID: 9082581865768966827}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &548084872
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1718,7 +1726,7 @@ MonoBehaviour:
   MessageBufferSize: 5120
   MaxConnections: 100
   MaxSentMessageQueueSize: 128
-  ConnectAddress: 127.0.0.1
+  ConnectAddress: 192.168.0.12
   ConnectPort: 7777
   ServerListenPort: 7777
   ServerWebsocketListenPort: 8887
@@ -2723,6 +2731,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 5662443223930251155, guid: ee2956842225961429d6de77c5a10f1d,
     type: 3}
+  lobby: {fileID: 1921843857}
+  text: {fileID: 1805920597}
   clicked: 0
 --- !u!1001 &1300085819
 PrefabInstance:
@@ -3873,6 +3883,12 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4231964402739953095, guid: 019768440ed77d34ebabb23c6f7ec322,
     type: 3}
   m_PrefabInstance: {fileID: 1798928726}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1805920597 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1848333254283197920, guid: e74b3435582b743428cb8b911498668c,
+    type: 3}
+  m_PrefabInstance: {fileID: 1848333253715519666}
   m_PrefabAsset: {fileID: 0}
 --- !u!224 &1830262294 stripped
 RectTransform:
