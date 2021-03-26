@@ -11,7 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
-public class ButtonManager : NetworkedBehaviour
+public class ButtonManager : NetworkBehaviour
 {
     public GameObject buttonServer;
     public GameObject buttonClient;
@@ -25,7 +25,7 @@ public class ButtonManager : NetworkedBehaviour
 
     public void onServerClicked()
     {
-        NetworkingManager.Singleton.StartServer();
+        NetworkManager.Singleton.StartServer();
         buttonServer.SetActive(false);
         buttonClient.SetActive(false);
     }
@@ -34,7 +34,7 @@ public class ButtonManager : NetworkedBehaviour
     {
         lobbyList.SetActive(true);
 
-        NetworkingManager.Singleton.StartClient();
+        NetworkManager.Singleton.StartClient();
         buttonClient.SetActive(false);
         buttonServer.SetActive(false);
     }

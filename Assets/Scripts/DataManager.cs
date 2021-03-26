@@ -3,26 +3,29 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using MLAPI;
-using MLAPI.NetworkedVar.Collections;
+//using MLAPI.NetworkedVar.Collections;
 using MLAPI.Messaging;
-using MLAPI.NetworkedVar;
-using MLAPI.NetworkedVar.Collections;
+//using MLAPI.NetworkedVar;
+//using MLAPI.NetworkedVar.Collections;
+using MLAPI.NetworkVariable.Collections;
 
-public class DataManager : NetworkedBehaviour
+public class DataManager : NetworkBehaviour
 {
     private static int maxPlayers;
 
     private static GameObject[] river = new GameObject[5];
 
-    [SyncedVar]
-    public string[] deck = new string[52];
-    [SyncedVar]
+  //  [SyncedVar]
+    //public string[] deck = new string[52];
+   // [SyncedVar]
     public GameObject[] players = new GameObject[5];
-    [SyncedVar]
+    //[SyncedVar]
     public int playerNum = 0;
 
     public static readonly string[] suits = new string[] { "Heart", "Spade", "Diamond", "Club"};
     public static readonly string[] values = new string[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"};
+
+    public NetworkList<string> deck = new NetworkList<string>();
 
     void Start()
     {
@@ -33,29 +36,30 @@ public class DataManager : NetworkedBehaviour
     {
         Debug.Log("NETWORK START - Data Manager");
 
-        if(isOwner) {
+        if(IsOwner) {
             generateDeck();
             shuffleDeck();
         }
 
-        if(isClient) {
+        if(IsClient) {
             Debug.Log("Data Manager - is client");
             //InvokeServerRpc(clientStart);
         }
 
     }
 
-    [ServerRPC]
+/*
+    [ServerRpc]
     void clientStart() 
     {
 
     }
 
-    [ClientRPC]
-    void syncDeck(NetworkedVar<int> i)
+    [ClientRpc]
+    void syncDeck(int i)
     {
 
-    }
+    }*/
 
     // Update is called once per frame
     void Update()
@@ -109,7 +113,7 @@ public class DataManager : NetworkedBehaviour
         {
             foreach (string v in values)
             {
-                deck[i] = s + v;
+                deck.Add(s + v);
                 i++;
                 //deck.Add (s + v);
             }

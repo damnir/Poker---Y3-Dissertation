@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using MLAPI;
 using MLAPI.Connection;
-using MLAPI.NetworkedVar;
+//using MLAPI.NetworkedVar;
 
-public class Lobbies : NetworkedBehaviour
+public class Lobbies : NetworkBehaviour
 { 
     public GameObject[] lobbies = new GameObject[15];
     

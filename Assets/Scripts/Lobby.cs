@@ -9,10 +9,12 @@ using MLAPI.Serialization.Pooled;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using MLAPI.NetworkVariable;
 
 
 
-public class Lobby : NetworkedBehaviour
+
+public class Lobby : NetworkBehaviour
 {
 
     Lobbies lobbyManager;
@@ -33,23 +35,27 @@ public class Lobby : NetworkedBehaviour
     }
 
     public void onClick() {
-        if (isClient) {
-            Debug.Log("Client ID: " + NetworkingManager.Singleton.LocalClientId);
+        if (IsClient) {
+            Debug.Log("Client ID: " + NetworkManager.Singleton.LocalClientId);
         }
     }
 
     public void onOneClick() {
 
-        GameObject.Find("Menu").SetActive(false);
+        if(IsClient) {
 
-        GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
-        player.GetComponent<Player>().changeLobby(lobbyManager.lobbies[0]);
+            GameObject.Find("Menu").SetActive(false);
 
-        foreach(GameObject room in lobbyManager.lobbies)
-        {
-            if (room.name != "Lobby01")
+
+            GameObject player = lobbyManager.getPlayerGoById(NetworkManager.Singleton.LocalClientId);
+            player.GetComponent<Player>().changeLobby(lobbyManager.lobbies[0]);
+
+            foreach(GameObject room in lobbyManager.lobbies)
             {
-                room.SetActive(false);
+                if (room.name != "Lobby01")
+                {
+                    room.SetActive(false);
+                }
             }
         }
 
@@ -57,15 +63,17 @@ public class Lobby : NetworkedBehaviour
 
     public void onTwoClick() {
 
-        GameObject player = lobbyManager.getPlayerGoById(NetworkingManager.Singleton.LocalClientId);
-        player.GetComponent<Player>().changeLobby(lobbyManager.lobbies[1]);
-        GameObject.Find("Menu").SetActive(false);
+        if(IsClient) {
+            GameObject player = lobbyManager.getPlayerGoById(NetworkManager.Singleton.LocalClientId);
+            player.GetComponent<Player>().changeLobby(lobbyManager.lobbies[1]);
+            GameObject.Find("Menu").SetActive(false);
 
-        foreach (GameObject room in lobbyManager.lobbies)
-        {
-            if (room.name != "Lobby02")
+            foreach (GameObject room in lobbyManager.lobbies)
             {
-                room.SetActive(false);
+                if (room.name != "Lobby02")
+                {
+                    room.SetActive(false);
+                }
             }
         }
     }

@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3667133580365349566}
   - component: {fileID: 1222148780647467315}
   - component: {fileID: 3272885647448246150}
-  - component: {fileID: -8518198360694425031}
   - component: {fileID: -5768020946911202264}
   m_Layer: 5
   m_Name: Seat
@@ -62,6 +61,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -75,23 +75,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &-8518198360694425031
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6999181397617201587}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 209037615, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  NetworkedInstanceId: 0
-  PrefabHash: 8998828114464792098
-  PrefabHashGenerator: Seat
-  AlwaysReplicateAsRoot: 0
-  DontDestroyWithOwner: 0
 --- !u!114 &-5768020946911202264
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -105,3 +88,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   taken: 0
+  seatNo: 0
