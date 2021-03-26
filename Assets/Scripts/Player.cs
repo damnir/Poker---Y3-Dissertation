@@ -17,6 +17,7 @@ public class Player : NetworkBehaviour
 
     DataManager dataManager;
     Lobbies lobbies;
+    
     public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -39,7 +40,6 @@ public class Player : NetworkBehaviour
 
     void Start()
     {
-        //changeLobby(GameObject.Find("Lobby01"));
         this.name = "PL" + OwnerClientId;
 
         if(IsOwner){
@@ -57,7 +57,6 @@ public class Player : NetworkBehaviour
 
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
 
-
         //Just for testing purposes 
         if(IsOwner){
             randomCard("Card1");
@@ -65,15 +64,11 @@ public class Player : NetworkBehaviour
         }
     }
 
-
     public ulong getPlayerID () { return OwnerClientId; }
 
     // Update is called once per frame
     void Update()
-    {
-        //this.transform.position = Position.Value;
-        //InvokeServerRpc(syncPositionServer, Channel)
-        
+    {   
         try {
             this.transform.position = GameObject.Find(pos.Value).transform.position; 
         }catch(NullReferenceException e) { }
@@ -111,48 +106,30 @@ public class Player : NetworkBehaviour
 
         if (IsClient)
             {
-                // If we are a client. (A client can be either a normal client or a HOST), we want to send a ServerRPC. ServerRPCs does work for host to make code consistent.
-                //InvokeServerRpc(changeLobbyServer, lobby, Channel);
                 changeLobbyServerRpc(lobby.name);
-            }
-        else if (IsServer)
-            {
-                // This is a strict server with no client attached. We can thus send the ClientRPC straight away without the server inbetween.
-                //InvokeClientRpcOnEveryone(changeLobbyClient, lobby, Channel);
-                //changeLobbyClientRpc(lobby);
             }
     }
 
     [ServerRpc]
     public void changeLobbyServerRpc(string name)
     {
-        //GameObject lobby = GameObject.Find(name);
         dataManager = currentLobby.Value.GetComponent<DataManager>();
 
         dataManager.addPlayer(this.gameObject);
-        string seatName = dataManager.nextFreeSeat();
-        //currentSeat = seatName;
 
-        sync(seatName, name);
-        // Tell every client
-        //InvokeClientRpcOnEveryone(changeLobbyClient, lobby, seatName, Channel);
-        changeLobbyClientRpc(name, seatName);
+        sync(name);
+        changeLobbyClientRpc(name);
     }
 
     [ClientRpc]
-    public void changeLobbyClientRpc(string name, string seatName) { 
-        //GameObject lobby = GameObject.Find(name);
+    public void changeLobbyClientRpc(string name) { 
         dataManager = currentLobby.Value.GetComponent<DataManager>();
-        dataManager.addPlayer(this.gameObject);
-        sync(seatName, name); }
+        sync(name); }
 
-    private void sync(string seatName, string name)
+    private void sync( string name)
     {
-        //GameObject lobby = GameObject.Find(name);
         GameObject lobby = currentLobby.Value;
-        GameObject seat = GameObject.Find(seatName);
         this.transform.SetParent(lobby.transform);
-        //this.transform.position = seat.transform.position;
         this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
     }
 
@@ -164,7 +141,6 @@ public class Player : NetworkBehaviour
             GameObject seat = GameObject.Find(name);
             this.transform.position = seat.transform.position;
             this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-            //InvokeServerRpc(sitServer, seat, Channel);
             sitServerRpc(name);
         }
     }
@@ -172,7 +148,6 @@ public class Player : NetworkBehaviour
     [ServerRpc]
     public void sitServerRpc(string name) {
         GameObject seat = GameObject.Find(name);
-        //InvokeClientRpcOnEveryone(sitClient, seat, Channel);
         sitClientRpc(name);
     }
 

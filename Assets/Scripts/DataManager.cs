@@ -7,6 +7,7 @@ using MLAPI;
 using MLAPI.Messaging;
 //using MLAPI.NetworkedVar;
 //using MLAPI.NetworkedVar.Collections;
+using MLAPI.NetworkVariable;
 using MLAPI.NetworkVariable.Collections;
 
 public class DataManager : NetworkBehaviour
@@ -18,18 +19,27 @@ public class DataManager : NetworkBehaviour
   //  [SyncedVar]
     //public string[] deck = new string[52];
    // [SyncedVar]
-    public GameObject[] players = new GameObject[5];
+    //public GameObject[] players = new GameObject[5];
     //[SyncedVar]
-    public int playerNum = 0;
+    //public int playerNum = 0;
+    public NetworkVariableInt playerNum = new NetworkVariableInt();
 
     public static readonly string[] suits = new string[] { "Heart", "Spade", "Diamond", "Club"};
     public static readonly string[] values = new string[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"};
 
     public NetworkList<string> deck = new NetworkList<string>();
 
+    public NetworkList<GameObject> players = new NetworkList<GameObject>(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.ServerOnly,
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
+    public float time;
+
     void Start()
     {
-
+        time = NetworkManager.Singleton.NetworkTime;
     }
 
     public override void NetworkStart()
@@ -68,42 +78,11 @@ public class DataManager : NetworkBehaviour
     }
 
     public void addPlayer(GameObject player) {
-        players[playerNum] = player;
-        Debug.Log("Added player: " + player.name);
-        playerNum++;
-    }
-
-    public string nextFreeSeat(){
-        if (playerNum == 1)
-        {
-            return ("Seat");
+        if(IsServer) {
+            players.Add(player);
+            Debug.Log("Added player: " + player.name);
+            playerNum.Value++;
         }
-        if (playerNum == 2)
-        {
-            return ("Seat (1)");
-        }
-        if (playerNum == 3)
-        {
-            return ("Seat (2)");
-        }
-        if (playerNum == 4)
-        {
-            return ("Seat (3)");
-        }
-        if (playerNum == 5)
-        {
-            return ("Seat (4)");
-        }
-        if (playerNum == 6)
-        {
-            return ("Seat (5)");
-        }
-        if (playerNum == 7)
-        {
-            return ("Seat (6)");
-        }
-        else
-            return("na");
     }
 
     public void generateDeck()
