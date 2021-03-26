@@ -47,7 +47,7 @@ public class Lobbies : NetworkBehaviour
     public GameObject getPlayerGoById(ulong clientId) {
         foreach (GameObject player in connectedPlayers)
         {
-            if ( player.GetComponent<Player>().getPlayerID() == clientId ) {
+            if ( player.GetComponent<Player>().getPlayerID() == (int)clientId ) {
                 return player;
             }
         }

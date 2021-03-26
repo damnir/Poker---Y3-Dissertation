@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using MLAPI;
-//using MLAPI.NetworkedVar.Collections;
 using MLAPI.Messaging;
-//using MLAPI.NetworkedVar;
-//using MLAPI.NetworkedVar.Collections;
 using MLAPI.NetworkVariable;
 using MLAPI.NetworkVariable.Collections;
 
@@ -23,6 +20,13 @@ public class DataManager : NetworkBehaviour
 
     public NetworkList<string> deck = new NetworkList<string>();
 
+    public bool gameActive = false;
+
+    public int currentPlayer = 0;
+    public int prevPlayer = 0;
+
+    public GameObject buttons;
+
     public NetworkList<GameObject> players = new NetworkList<GameObject>(new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.ServerOnly,
@@ -33,12 +37,12 @@ public class DataManager : NetworkBehaviour
 
     void Start()
     {
-        time = NetworkManager.Singleton.NetworkTime;
     }
 
     public override void NetworkStart()
     {
         Debug.Log("NETWORK START - Data Manager");
+        time = NetworkManager.Singleton.NetworkTime;
 
         if(IsServer) {
             generateDeck();
@@ -58,7 +62,37 @@ public class DataManager : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(IsServer) {
 
+            if(!gameActive && playerNum.Value >= 2) {
+                gameActive = true;
+                time = NetworkManager.Singleton.NetworkTime;
+            } 
+            if(gameActive && NetworkManager.Singleton.NetworkTime > time) {
+                endTurnClientRpc(players[prevPlayer].GetComponent<Player>().getPlayerID());
+                nextTurnClientRpc(players[currentPlayer].GetComponent<Player>().getPlayerID());
+                prevPlayer = currentPlayer;
+                currentPlayer++;
+                if(currentPlayer >= playerNum.Value){
+                    currentPlayer = 0;
+                }
+                time += 5;
+            }
+        }
+    }
+
+    [ClientRpc]
+    public void nextTurnClientRpc(int id) {
+        if(id == (int)NetworkManager.Singleton.LocalClientId) {
+            buttons.SetActive(true);
+        }
+    }
+
+    [ClientRpc]
+    public void endTurnClientRpc(int id) {
+        if(id == (int)NetworkManager.Singleton.LocalClientId) {
+            buttons.SetActive(false);
+        }
     }
 
     public void addPlayer(GameObject player) {
@@ -78,7 +112,6 @@ public class DataManager : NetworkBehaviour
             {
                 deck.Add(s + v);
                 i++;
-                //deck.Add (s + v);
             }
         }
     }

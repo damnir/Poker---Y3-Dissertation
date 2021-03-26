@@ -12,12 +12,17 @@ using MLAPI.NetworkVariable;
 
 public class Player : NetworkBehaviour
 {
-    public int clientID;
     string currentSeat;
 
     DataManager dataManager;
     Lobbies lobbies;
-    
+
+    public NetworkVariableInt clientID = new NetworkVariableInt(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.OwnerOnly,
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
     public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -43,6 +48,7 @@ public class Player : NetworkBehaviour
         this.name = "PL" + OwnerClientId;
 
         if(IsOwner){
+            clientID.Value = (int)OwnerClientId;
 
             Text t1 = GameObject.Find("CLIENT_TEXT").GetComponent<Text>();
             Text t2 = GameObject.Find("CLIENT_TEXT2").GetComponent<Text>();
@@ -64,7 +70,7 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public ulong getPlayerID () { return OwnerClientId; }
+    public int getPlayerID () { return clientID.Value; }
 
     // Update is called once per frame
     void Update()

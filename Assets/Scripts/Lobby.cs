@@ -35,7 +35,7 @@ public class Lobby : NetworkBehaviour
     {
         try {
             Text tt = text.GetComponent<Text>();
-            tt.text = "Join Lobby " + lobby.name +  " " + lobby.GetComponent<DataManager>().getPlayerNum() + "/7";
+            tt.text = lobby.name +  " " + lobby.GetComponent<DataManager>().getPlayerNum() + "/7";
         }catch(NullReferenceException e) { }
         
     }
