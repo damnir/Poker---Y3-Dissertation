@@ -442,7 +442,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55bb88051c48c2344b54583860d9cc6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clientID: 0
+  clientID:
+    m_InternalValue: 0
+  Position:
+    m_InternalValue: {x: 0, y: 0, z: 0}
+  pos:
+    m_InternalValue: 
   Channel: MLAPI_DEFAULT_MESSAGE
 --- !u!114 &6177167583812633661
 MonoBehaviour:

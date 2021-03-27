@@ -6,6 +6,10 @@ using MLAPI;
 using MLAPI.Messaging;
 using MLAPI.NetworkVariable;
 using MLAPI.NetworkVariable.Collections;
+using static System.Action;
+using System;
+using static System.Exception;
+using static MLAPI.Spawning.NetworkSpawnManager;
 
 public class DataManager : NetworkBehaviour
 {
@@ -13,7 +17,11 @@ public class DataManager : NetworkBehaviour
 
     private static GameObject[] river = new GameObject[5];
 
-    public NetworkVariableInt playerNum = new NetworkVariableInt();
+    public NetworkVariableInt playerNum = new NetworkVariableInt(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.ServerOnly,
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
 
     public static readonly string[] suits = new string[] { "Heart", "Spade", "Diamond", "Club"};
     public static readonly string[] values = new string[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"};
@@ -33,11 +41,33 @@ public class DataManager : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
+    public NetworkList<ulong> playersId = new NetworkList<ulong>(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.ServerOnly,
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
     public float time;
 
     void Start()
     {
+        NetworkManager.Singleton.OnClientDisconnectCallback += clientDisconnect; //GETS CALLED ON ALL LOBBIES -- FIX
     }
+
+
+
+    public void clientDisconnect(ulong id) {
+        if(IsServer){
+            Debug.Log("Client Disconnected. ID: " + id);
+            //GameObject dp = players.Find(x => x.Contains.GetComponent<Player>().getPlayerID());
+            if(playersId.Contains(id)){
+                this.playerNum.Value--;
+            }
+            
+            //Destroy(GetPlayerNetworkObject(id).gameObject);
+        }
+    }
+
 
     public override void NetworkStart()
     {
@@ -64,13 +94,29 @@ public class DataManager : NetworkBehaviour
     {
         if(IsServer) {
 
+            if(playerNum.Value < 2) {
+                gameActive = false;
+            }
             if(!gameActive && playerNum.Value >= 2) {
                 gameActive = true;
                 time = NetworkManager.Singleton.NetworkTime;
             } 
             if(gameActive && NetworkManager.Singleton.NetworkTime > time) {
-                endTurnClientRpc(players[prevPlayer].GetComponent<Player>().getPlayerID());
-                nextTurnClientRpc(players[currentPlayer].GetComponent<Player>().getPlayerID());
+                try {
+                    endTurnClientRpc(players[prevPlayer].GetComponent<Player>().getPlayerID());
+                }catch(MissingReferenceException e) { 
+                    players.RemoveAt(prevPlayer);
+                }
+                try {
+                    nextTurnClientRpc(players[currentPlayer].GetComponent<Player>().getPlayerID());
+                }catch(MissingReferenceException e) { 
+                    players.RemoveAt(currentPlayer);
+                    currentPlayer++;
+                    if(currentPlayer >= playerNum.Value){
+                        currentPlayer = 0;
+                    }
+                    nextTurnClientRpc(players[currentPlayer].GetComponent<Player>().getPlayerID());
+                }
                 prevPlayer = currentPlayer;
                 currentPlayer++;
                 if(currentPlayer >= playerNum.Value){
@@ -98,6 +144,7 @@ public class DataManager : NetworkBehaviour
     public void addPlayer(GameObject player) {
         if(IsServer) {
             players.Add(player);
+            playersId.Add((ulong)player.GetComponent<Player>().getPlayerID());
             Debug.Log("Added player: " + player.name);
             playerNum.Value++;
         }
@@ -120,7 +167,7 @@ public class DataManager : NetworkBehaviour
     {
         for(int i = 51; i > 1; i--)
         {
-            int j = Random.Range(0, 51);
+            int j = UnityEngine.Random.Range(0, 51);
             string temp1 = deck[i];
             string temp2 = deck[j];
             deck[i] = temp2;

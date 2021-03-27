@@ -8,8 +8,6 @@ using MLAPI.Messaging;
 using MLAPI.NetworkVariable;
 //using MLAPI.NetworkedVar;
 
-
-
 public class Player : NetworkBehaviour
 {
     string currentSeat;
@@ -162,7 +160,9 @@ public class Player : NetworkBehaviour
         GameObject seat = GameObject.Find(name);
         this.transform.position = seat.transform.position;
         this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-        Position.Value = seat.transform.position;
+        if(IsOwner) {
+            Position.Value = seat.transform.position;
+        }
         pos.Value = name;
     }
     
