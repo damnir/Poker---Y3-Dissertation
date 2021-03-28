@@ -13,7 +13,7 @@ using static MLAPI.Spawning.NetworkSpawnManager;
 
 public class DataManager : NetworkBehaviour
 {
-    private static int maxPlayers;
+    public int maxPlayers;
 
     private static GameObject[] river = new GameObject[5];
 
@@ -32,6 +32,9 @@ public class DataManager : NetworkBehaviour
 
     public int currentPlayer = 0;
     public int prevPlayer = 0;
+
+    ClientRpcParams clientRpcParams = new ClientRpcParams();
+
 
     public GameObject buttons;
 
@@ -102,8 +105,13 @@ public class DataManager : NetworkBehaviour
                 time = NetworkManager.Singleton.NetworkTime;
             } 
             if(gameActive && NetworkManager.Singleton.NetworkTime > time) {
+                updateClientParams();
+                foreach(ulong id in clientRpcParams.Send.TargetClientIds) {
+                    Debug.Log("clientparam ID: " + id);
+                }
+
                 try {
-                    endTurnClientRpc(players[prevPlayer].GetComponent<Player>().getPlayerID());
+                    endTurnClientRpc(players[prevPlayer].GetComponent<Player>().getPlayerID(), clientRpcParams);
                 }catch(MissingReferenceException e) { 
                     players.RemoveAt(prevPlayer);
                 }
@@ -127,6 +135,16 @@ public class DataManager : NetworkBehaviour
         }
     }
 
+    public void updateClientParams() {
+        clientRpcParams.Send.TargetClientIds = new ulong[playersId.Count];
+
+        for(int i = 0; i < playersId.Count; i++)
+        {
+            clientRpcParams.Send.TargetClientIds[i] = playersId[i];
+        }
+
+    }
+
     [ClientRpc]
     public void nextTurnClientRpc(int id) {
         if(id == (int)NetworkManager.Singleton.LocalClientId) {
@@ -135,10 +153,15 @@ public class DataManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void endTurnClientRpc(int id) {
+    public void endTurnClientRpc(int id, ClientRpcParams clientRpcParams) {
         if(id == (int)NetworkManager.Singleton.LocalClientId) {
             buttons.SetActive(false);
         }
+    }
+
+    [ClientRpc]
+    public void dealCardsClientRpc(string card1, string card2) {
+
     }
 
     public void addPlayer(GameObject player) {
@@ -173,6 +196,10 @@ public class DataManager : NetworkBehaviour
             deck[i] = temp2;
             deck[j] = temp1;
         }
+    }
+
+    public string evaluateHand(List<string> cards) {
+        return null;
     }
 
 }
