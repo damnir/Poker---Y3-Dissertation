@@ -13,13 +13,16 @@ using static MLAPI.Spawning.NetworkSpawnManager;
 
 public class DataManager : NetworkBehaviour
 {
-    private static GameObject[] river = new GameObject[5];
+    public GameObject[] river = new GameObject[5];
+
 
     static NetworkVariableSettings serverOnlyWriteSetting = new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.ServerOnly,
             ReadPermission = NetworkVariablePermission.Everyone
         };
+
+    public NetworkList<string> riverCards = new NetworkList<string>(serverOnlyWriteSetting);
 
     public NetworkVariableInt playerNum = new NetworkVariableInt(serverOnlyWriteSetting);
 
@@ -54,6 +57,7 @@ public class DataManager : NetworkBehaviour
     }
 
     Stage currentStage;
+    Stage prevStage;
 
     ClientRpcParams clientRpcParams = new ClientRpcParams();
 
@@ -77,7 +81,6 @@ public class DataManager : NetworkBehaviour
         if(IsClient) {
             Debug.Log("Data Manager - is client");
         }
-
     }
 
     // Update is called once per frame
@@ -103,9 +106,8 @@ public class DataManager : NetworkBehaviour
 
                 if(currentStage == Stage.Deal) {
                     dealCardsClientRpc(clientRpcParams);
+                    prevStage = currentStage;
                     currentStage = Stage.Wait;
-                    orderSeats();
-                    orderPlayers();
                 }
                 ///
                 ///...
@@ -113,16 +115,50 @@ public class DataManager : NetworkBehaviour
                 if(currentStage == Stage.WaitEnd) {
                     endTurnClientRpc(playerOrder[0], clientRpcParams);
                     playerOrder.RemoveAt(0);
-                    if(playerOrder == null) {
-                        currentStage = Stage.Flop1;
+                    if(playerOrder.Count < 1) {
+                        if(prevStage == Stage.Flop1) {
+                            currentStage = Stage.Flop2;
+                        }
+                        else if (prevStage == Stage.Flop2) {
+                            currentStage = Stage.Flop3;
+                        }
+                        else if (prevStage == Stage.Deal) {
+                            currentStage = Stage.Flop1;
+                        }
                     }
                     else {
                         currentStage = Stage.Wait;
                     }
                 }
 
+                if( currentStage == Stage.Flop1) {
+                    flop1();
+                    flop1ClientRpc(clientRpcParams);
+
+                    orderPlayers();
+                    prevStage = currentStage;
+                    currentStage = Stage.Wait;
+                }
+
+                if( currentStage == Stage.Flop2) {
+                    flop2();
+                    flop2ClientRpc(clientRpcParams);
+
+                    orderPlayers();
+                    prevStage = currentStage;
+                    currentStage = Stage.Wait;
+                }
+
+                if( currentStage == Stage.Flop3) {
+                    flop3();
+                    flop3ClientRpc(clientRpcParams);
+
+                    orderPlayers();
+                    prevStage = currentStage;
+                    currentStage = Stage.Wait;
+                }
+
                 if(currentStage == Stage.Wait) {
-                    // endTurnClientRpc()
                     nextTurnClientRpc(playerOrder[0]);  
                     currentStage = Stage.WaitEnd;                  
                 }
@@ -207,6 +243,56 @@ public class DataManager : NetworkBehaviour
         string card2 = deck[r];
         deck.RemoveAt(r);
         GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().dealCards(card1, card2);
+    }
+
+    public void flop1() {
+        for (int i = 0; i < 3; i++) {
+            int r = UnityEngine.Random.Range(0, deck.Count);
+            string card = deck[r];
+            deck.RemoveAt(r);
+            riverCards.Add(card);
+        }
+    }
+
+    [ClientRpc]
+    public void flop1ClientRpc(ClientRpcParams clientRpcParams) {
+        for(int i = 0; i < 3; i++)
+        {
+            GameObject card = river[i];
+            card.SetActive(true);
+            Image cardImage = card.GetComponent<Image>();
+            cardImage.sprite = Resources.Load<Sprite>("Cards/" + riverCards[i]);
+        }
+    }
+
+    public void flop2() {
+        int r = UnityEngine.Random.Range(0, deck.Count);
+        string card = deck[r];
+        deck.RemoveAt(r);
+        riverCards.Add(card);
+    }
+
+    [ClientRpc]
+    public void flop2ClientRpc(ClientRpcParams clientRpcParams) {
+        GameObject card = river[3];
+        card.SetActive(true);
+        Image cardImage = card.GetComponent<Image>();
+        cardImage.sprite = Resources.Load<Sprite>("Cards/" + riverCards[3]);
+    }
+
+    public void flop3() {
+        int r = UnityEngine.Random.Range(0, deck.Count);
+        string card = deck[r];
+        deck.RemoveAt(r);
+        riverCards.Add(card);
+    }
+
+    [ClientRpc]
+    public void flop3ClientRpc(ClientRpcParams clientRpcParams) {
+        GameObject card = river[4];
+        card.SetActive(true);
+        Image cardImage = card.GetComponent<Image>();
+        cardImage.sprite = Resources.Load<Sprite>("Cards/" + riverCards[4]);
     }
 
     public void addPlayer(GameObject player) {
