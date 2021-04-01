@@ -10,8 +10,6 @@ using MLAPI.NetworkVariable;
 
 public class Player : NetworkBehaviour
 {
-    string currentSeat;
-
     DataManager dataManager;
     Lobbies lobbies;
 
@@ -34,6 +32,12 @@ public class Player : NetworkBehaviour
         });
 
     public NetworkVariable<GameObject> currentLobby = new NetworkVariable<GameObject>(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.OwnerOnly,
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
+    public NetworkVariableInt currentSeat = new NetworkVariableInt(new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
             ReadPermission = NetworkVariablePermission.Everyone
@@ -63,8 +67,8 @@ public class Player : NetworkBehaviour
 
         //Just for testing purposes 
         if(IsOwner){
-            randomCard("Card1");
-            randomCard("Card2");
+            //randomCard("Card1");
+            //randomCard("Card2");
         }
     }
 
@@ -87,21 +91,18 @@ public class Player : NetworkBehaviour
         objectText.text = newText;
     }
 
-    // TODO: completely refactor this function - doesn't need to be in this script
-    void randomCard(string objectName) 
-    {
-        dataManager = GameObject.Find("Lobby01").GetComponent<DataManager>();
+    public void dealCards(string card1, string card2) {
+        Transform card1transform = gameObject.transform.Find("Card1");
+        GameObject card1go = card1transform.gameObject;
+        card1transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
+        Image card1image = card1go.GetComponent<Image>();
+        card1image.sprite = Resources.Load<Sprite>("Cards/" + card1);
 
-        Transform objectTransform = gameObject.transform.Find(objectName);
-        GameObject objectReference = objectTransform.gameObject;
-
-        objectTransform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
-
-        Image objectImage = objectReference.GetComponent<Image>();
-        int r = UnityEngine.Random.Range(0, 51);
-        string randomCardc = dataManager.deck[r];
-        objectImage.sprite = Resources.Load<Sprite>("Cards/" + randomCardc);
-        Debug.Log("Random Card: " + randomCardc);
+        Transform card2transform = gameObject.transform.Find("Card2");
+        GameObject card2go = card2transform.gameObject;
+        card2transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
+        Image card2image = card2go.GetComponent<Image>();
+        card2image.sprite = Resources.Load<Sprite>("Cards/" + card2);
     }
 
     public void changeLobby(GameObject lobby) 
@@ -162,6 +163,7 @@ public class Player : NetworkBehaviour
         this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
         if(IsOwner) {
             Position.Value = seat.transform.position;
+            currentSeat.Value = seat.GetComponent<Seat>().seatNo;
         }
         pos.Value = name;
     }

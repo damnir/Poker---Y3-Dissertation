@@ -187,6 +187,12 @@ MonoBehaviour:
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
+--- !u!1 &55395332 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7044764698552653138, guid: 4be0681f0c8d0834cbfb64dd9fcce031,
+    type: 3}
+  m_PrefabInstance: {fileID: 7044764698095381664}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &66042729
 GameObject:
   m_ObjectHideFlags: 0
@@ -708,6 +714,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 338322837}
     m_Modifications:
+    - target: {fileID: -5768020946911202264, guid: 813ace3e0b80e8a49979a8ba21901514,
+        type: 3}
+      propertyPath: seatNo
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3667133580365349566, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Pivot.x
@@ -816,7 +827,7 @@ PrefabInstance:
     - target: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Name
-      value: Seat (1)
+      value: Seat02
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 813ace3e0b80e8a49979a8ba21901514, type: 3}
@@ -899,6 +910,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 338322837}
     m_Modifications:
+    - target: {fileID: -5768020946911202264, guid: 813ace3e0b80e8a49979a8ba21901514,
+        type: 3}
+      propertyPath: seatNo
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 3667133580365349566, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1022,7 +1038,7 @@ PrefabInstance:
     - target: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Name
-      value: Seat (6)
+      value: Seat07
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 813ace3e0b80e8a49979a8ba21901514, type: 3}
@@ -1215,6 +1231,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 338322837}
     m_Modifications:
+    - target: {fileID: -5768020946911202264, guid: 813ace3e0b80e8a49979a8ba21901514,
+        type: 3}
+      propertyPath: seatNo
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 3667133580365349566, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1338,7 +1359,7 @@ PrefabInstance:
     - target: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Name
-      value: Seat (4)
+      value: Seat05
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 813ace3e0b80e8a49979a8ba21901514, type: 3}
@@ -1448,13 +1469,28 @@ PrefabInstance:
       objectReference: {fileID: 1322018815}
     - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
+      propertyPath: buttons
+      value: 
+      objectReference: {fileID: 55395332}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
       propertyPath: nameField
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
+      propertyPath: maxPlayers
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
       propertyPath: players.Array.size
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: seatOrder.Array.size
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8092095935720816154, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
@@ -1566,6 +1602,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 338322837}
     m_Modifications:
+    - target: {fileID: -5768020946911202264, guid: 813ace3e0b80e8a49979a8ba21901514,
+        type: 3}
+      propertyPath: seatNo
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 3667133580365349566, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1689,7 +1730,7 @@ PrefabInstance:
     - target: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Name
-      value: Seat (3)
+      value: Seat04
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 813ace3e0b80e8a49979a8ba21901514, type: 3}
@@ -1726,7 +1767,7 @@ MonoBehaviour:
   MessageBufferSize: 5120
   MaxConnections: 100
   MaxSentMessageQueueSize: 128
-  ConnectAddress: 192.168.0.12
+  ConnectAddress: 192.168.0.57
   ConnectPort: 7777
   ServerListenPort: 7777
   ServerWebsocketListenPort: 8887
@@ -1812,6 +1853,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 338322837}
     m_Modifications:
+    - target: {fileID: -5768020946911202264, guid: 813ace3e0b80e8a49979a8ba21901514,
+        type: 3}
+      propertyPath: seatNo
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3667133580365349566, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1920,7 +1966,7 @@ PrefabInstance:
     - target: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Name
-      value: Seat (2)
+      value: Seat03
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 813ace3e0b80e8a49979a8ba21901514, type: 3}
@@ -1971,6 +2017,21 @@ PrefabInstance:
       propertyPath: seat7
       value: 
       objectReference: {fileID: 1322018815}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: buttons
+      value: 
+      objectReference: {fileID: 55395332}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: maxPlayers
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: seatOrder.Array.size
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 8092095935720816154, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
       propertyPath: m_RootOrder
@@ -2350,6 +2411,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Lobby03
+      objectReference: {fileID: 0}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: maxPlayers
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: seatOrder.Array.size
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8092095935720816154, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
@@ -2741,6 +2812,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 338322837}
     m_Modifications:
+    - target: {fileID: -5768020946911202264, guid: 813ace3e0b80e8a49979a8ba21901514,
+        type: 3}
+      propertyPath: seatNo
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 3667133580365349566, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Pivot.x
@@ -2864,7 +2940,7 @@ PrefabInstance:
     - target: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Name
-      value: Seat (5)
+      value: Seat06
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 813ace3e0b80e8a49979a8ba21901514, type: 3}
@@ -3302,6 +3378,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Lobby04
+      objectReference: {fileID: 0}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: maxPlayers
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: seatOrder.Array.size
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8092095935720816154, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
@@ -4268,7 +4354,7 @@ PrefabInstance:
     - target: {fileID: 1848333254863106651, guid: e74b3435582b743428cb8b911498668c,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: onOneClick
+      value: onClick
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e74b3435582b743428cb8b911498668c, type: 3}
@@ -4423,7 +4509,7 @@ PrefabInstance:
     - target: {fileID: 7044764698552653138, guid: 4be0681f0c8d0834cbfb64dd9fcce031,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7044764698552653139, guid: 4be0681f0c8d0834cbfb64dd9fcce031,
         type: 3}
@@ -4747,7 +4833,7 @@ PrefabInstance:
     - target: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
       propertyPath: m_Name
-      value: Seat
+      value: Seat01
       objectReference: {fileID: 0}
     - target: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514,
         type: 3}
@@ -4781,7 +4867,7 @@ PrefabInstance:
     - target: {fileID: 9082581865868783493, guid: 9ac7f92b575ae5e4f8cef62b692bc0aa,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: onTwoClick
+      value: onClick
       objectReference: {fileID: 0}
     - target: {fileID: 9082581865868783494, guid: 9ac7f92b575ae5e4f8cef62b692bc0aa,
         type: 3}
