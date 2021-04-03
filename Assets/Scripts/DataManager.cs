@@ -15,7 +15,6 @@ public class DataManager : NetworkBehaviour
 {
     public GameObject[] river = new GameObject[5];
 
-
     static NetworkVariableSettings serverOnlyWriteSetting = new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.ServerOnly,
@@ -28,7 +27,7 @@ public class DataManager : NetworkBehaviour
 
     public NetworkList<GameObject> players = new NetworkList<GameObject>(serverOnlyWriteSetting);
 
-    public NetworkList<ulong> playersId = new NetworkList<ulong>(serverOnlyWriteSetting);
+    public NetworkList<ulong> playerIds = new NetworkList<ulong>(serverOnlyWriteSetting);
 
     public NetworkList<string> deck = new NetworkList<string>(serverOnlyWriteSetting);
 
@@ -43,8 +42,6 @@ public class DataManager : NetworkBehaviour
 
     public float time;
     public int maxPlayers;
-    public int currentPlayer = 0;
-    public int prevPlayer = 0;
 
     enum Stage
     {
@@ -53,11 +50,18 @@ public class DataManager : NetworkBehaviour
         Deal,
         Flop1,
         Flop2,
-        Flop3
+        Flop3,
+        End
     }
 
     Stage currentStage;
     Stage prevStage;
+
+    public int smallBlind;
+    public int bigBlind;
+    public int mainPot;
+    public int sidePot;
+    public int currentBet;
 
     ClientRpcParams clientRpcParams = new ClientRpcParams();
 
@@ -93,7 +97,7 @@ public class DataManager : NetworkBehaviour
             }
             if(!gameActive && playerNum.Value >= 2) {
                 orderSeats();
-                orderPlayers();
+                orderPlayers(false);
                 if(playerOrder.Count >= 2){
                     gameActive = true;
                     currentStage = Stage.Deal;
@@ -103,14 +107,6 @@ public class DataManager : NetworkBehaviour
 
             if(gameActive && NetworkManager.Singleton.NetworkTime > time) {
                 updateClientParams();
-
-                if(currentStage == Stage.Deal) {
-                    dealCardsClientRpc(clientRpcParams);
-                    prevStage = currentStage;
-                    currentStage = Stage.Wait;
-                }
-                ///
-                ///...
 
                 if(currentStage == Stage.WaitEnd) {
                     endTurnClientRpc(playerOrder[0], clientRpcParams);
@@ -122,6 +118,9 @@ public class DataManager : NetworkBehaviour
                         else if (prevStage == Stage.Flop2) {
                             currentStage = Stage.Flop3;
                         }
+                        else if (prevStage == Stage.Flop3) {
+                            currentStage = Stage.End;
+                        }
                         else if (prevStage == Stage.Deal) {
                             currentStage = Stage.Flop1;
                         }
@@ -131,11 +130,19 @@ public class DataManager : NetworkBehaviour
                     }
                 }
 
+                if(currentStage == Stage.Deal) {
+                    dealCardsClientRpc(clientRpcParams);
+                    orderPlayers(false);
+
+                    prevStage = currentStage;
+                    currentStage = Stage.Wait;
+                }
+
                 if( currentStage == Stage.Flop1) {
                     flop1();
                     flop1ClientRpc(clientRpcParams);
 
-                    orderPlayers();
+                    orderPlayers(true);
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
                 }
@@ -144,7 +151,7 @@ public class DataManager : NetworkBehaviour
                     flop2();
                     flop2ClientRpc(clientRpcParams);
 
-                    orderPlayers();
+                    orderPlayers(true);
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
                 }
@@ -153,7 +160,7 @@ public class DataManager : NetworkBehaviour
                     flop3();
                     flop3ClientRpc(clientRpcParams);
 
-                    orderPlayers();
+                    orderPlayers(true);
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
                 }
@@ -161,6 +168,15 @@ public class DataManager : NetworkBehaviour
                 if(currentStage == Stage.Wait) {
                     nextTurnClientRpc(playerOrder[0]);  
                     currentStage = Stage.WaitEnd;                  
+                }
+
+                if( currentStage == Stage.End) {
+                    endStage();
+                    endStageClientRpc(clientRpcParams);
+                    orderSeats();
+                    orderPlayers(false);
+                    prevStage = currentStage;
+                    currentStage = Stage.Deal;
                 }
 
                 time += 5;
@@ -178,7 +194,7 @@ public class DataManager : NetworkBehaviour
         if(IsServer){
             Debug.Log("Client Disconnected. ID: " + id);
             //GameObject dp = players.Find(x => x.Contains.GetComponent<Player>().getPlayerID());
-            if(playersId.Contains(id)){
+            if(playerIds.Contains(id)){
                 this.playerNum.Value--;
             }
         }
@@ -189,11 +205,11 @@ public class DataManager : NetworkBehaviour
     }
 
     public void updateClientParams() {
-        clientRpcParams.Send.TargetClientIds = new ulong[playersId.Count];
+        clientRpcParams.Send.TargetClientIds = new ulong[playerIds.Count];
 
-        for(int i = 0; i < playersId.Count; i++)
+        for(int i = 0; i < playerIds.Count; i++)
         {
-            clientRpcParams.Send.TargetClientIds[i] = playersId[i];
+            clientRpcParams.Send.TargetClientIds[i] = playerIds[i];
         }
     }
 
@@ -209,13 +225,23 @@ public class DataManager : NetworkBehaviour
         }
     }
 
-    public void orderPlayers() {
+    public void orderPlayers(bool reOrder) {
         playerOrder.Clear();
 
-        foreach (int id in seatOrder)
-        {
-            if(id != 0) {
-                playerOrder.Add(id);
+        if(reOrder) {
+            foreach (int id in seatOrder)
+            {
+                if(id != 0 && !GetPlayerNetworkObject((ulong)id).GetComponent<Player>().folded.Value) {
+                    playerOrder.Add(id);
+                }
+            } 
+        }
+        else {
+            foreach (int id in seatOrder)
+            {
+                if(id != 0) {
+                    playerOrder.Add(id);
+                }
             }
         }
     }
@@ -232,6 +258,10 @@ public class DataManager : NetworkBehaviour
         if(id == (int)NetworkManager.Singleton.LocalClientId) {
             buttons.SetActive(false);
         }
+    }
+
+    public void deal () {
+
     }
 
     [ClientRpc]
@@ -295,10 +325,29 @@ public class DataManager : NetworkBehaviour
         cardImage.sprite = Resources.Load<Sprite>("Cards/" + riverCards[4]);
     }
 
+    public void endStage() {
+        generateDeck();
+        shuffleDeck();
+    }
+
+    [ClientRpc]
+    public void endStageClientRpc(ClientRpcParams clientRpcParams) {
+        foreach(GameObject card in river) {
+            card.SetActive(false);
+        }
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    public void playerFoldServerRpc(ulong senderId) {
+        time = NetworkManager.Singleton.NetworkTime; //force loop update
+        Debug.Log("player fold called");
+
+    }
+
     public void addPlayer(GameObject player) {
         if(IsServer) {
             players.Add(player);
-            playersId.Add((ulong)player.GetComponent<Player>().getPlayerID());
+            playerIds.Add((ulong)player.GetComponent<Player>().getPlayerID());
             Debug.Log("Added player: " + player.name);
             playerNum.Value++;
         }

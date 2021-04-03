@@ -43,6 +43,28 @@ public class Player : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
+    public NetworkVariableInt cash = new NetworkVariableInt(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
+    public NetworkVariableInt currentBet = new NetworkVariableInt(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
+    public NetworkVariable<bool> folded = new NetworkVariable<bool>(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
+    public GameObject foldGo;
+    public GameObject card1;
+    public GameObject card2;
+
     public string Channel = "MLAPI_DEFAULT_MESSAGE";
 
     void Start()
@@ -55,6 +77,8 @@ public class Player : NetworkBehaviour
             Text t1 = GameObject.Find("CLIENT_TEXT").GetComponent<Text>();
             Text t2 = GameObject.Find("CLIENT_TEXT2").GetComponent<Text>();
 
+            cash.Value = 100000;
+
             t1.text = "Client ID: " + OwnerClientId;
             t2.text = "Client ID: " + OwnerClientId;
         }
@@ -64,12 +88,6 @@ public class Player : NetworkBehaviour
         transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
-
-        //Just for testing purposes 
-        if(IsOwner){
-            //randomCard("Card1");
-            //randomCard("Card2");
-        }
     }
 
     public int getPlayerID () { return clientID.Value; }
@@ -77,9 +95,23 @@ public class Player : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {   
-        try {
-            this.transform.position = GameObject.Find(pos.Value).transform.position; 
-        }catch(NullReferenceException e) { }
+        if(IsClient) {
+            try {
+                this.transform.position = GameObject.Find(pos.Value).transform.position; 
+            }catch(NullReferenceException e) { }
+            changeText("Cash", "$" + cash.Value.ToString());
+
+            if(!folded.Value) {
+                foldGo.SetActive(false);
+                card1.SetActive(true);
+                card2.SetActive(true);
+            }
+            if(folded.Value) {
+                foldGo.SetActive(true);
+                card1.SetActive(false);
+                card2.SetActive(false);
+            }
+        }
     }
 
     void changeText(string objectName, string newText)
@@ -103,6 +135,8 @@ public class Player : NetworkBehaviour
         card2transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
         Image card2image = card2go.GetComponent<Image>();
         card2image.sprite = Resources.Load<Sprite>("Cards/" + card2);
+
+        folded.Value = false;
     }
 
     public void changeLobby(GameObject lobby) 
@@ -110,9 +144,9 @@ public class Player : NetworkBehaviour
         currentLobby.Value = lobby;
 
         if (IsClient)
-            {
-                changeLobbyServerRpc(lobby.name);
-            }
+        {
+            changeLobbyServerRpc(lobby.name);
+        }
     }
 
     [ServerRpc]
@@ -166,6 +200,25 @@ public class Player : NetworkBehaviour
             currentSeat.Value = seat.GetComponent<Seat>().seatNo;
         }
         pos.Value = name;
+    }
+
+    ////GAME 
+
+    public void fold() {
+        folded.Value = true;
+        currentLobby.Value.GetComponent<DataManager>().playerFoldServerRpc(OwnerClientId);
+    }
+
+    public void check() {
+
+    }
+
+    public void call() {
+
+    }
+
+    public void raise() {
+
     }
     
 }

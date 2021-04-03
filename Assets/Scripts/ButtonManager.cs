@@ -10,6 +10,8 @@ using MLAPI.Serialization.Pooled;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using static MLAPI.Spawning.NetworkSpawnManager;
+
 
 public class ButtonManager : NetworkBehaviour
 {
@@ -18,6 +20,10 @@ public class ButtonManager : NetworkBehaviour
     public GameObject buttonLobby2;
     public GameObject lobbyList;
     public GameObject data;
+    public GameObject foldButton;
+    public GameObject callButton;
+    public GameObject raiseButton;
+    public GameObject slider;
 
     void Start() {
         //NetworkingManager.Singleton.StartServer();
@@ -37,5 +43,25 @@ public class ButtonManager : NetworkBehaviour
         NetworkManager.Singleton.StartClient();
         buttonClient.SetActive(false);
         buttonServer.SetActive(false);
+    }
+
+    public void onFoldClicked()
+    {
+        GetLocalPlayerObject().GetComponent<Player>().fold();
+    }
+
+    public void onCallClicked()
+    {
+
+    }
+
+    public void onRaiseClicked() 
+    {
+
+    }
+
+    public void onSliderChanged()
+    {
+
     }
 }
