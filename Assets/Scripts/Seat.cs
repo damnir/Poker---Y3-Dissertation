@@ -7,6 +7,7 @@ public class Seat : MonoBehaviour
 {
     public bool taken = false;
     public int seatNo;
+    public GameObject betText;
 
     Lobbies lobbyManager;
 

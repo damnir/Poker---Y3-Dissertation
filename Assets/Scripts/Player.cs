@@ -6,12 +6,29 @@ using UnityEngine.UI;
 using MLAPI;
 using MLAPI.Messaging;
 using MLAPI.NetworkVariable;
+using TMPro;
 //using MLAPI.NetworkedVar;
 
 public class Player : NetworkBehaviour
 {
     DataManager dataManager;
     Lobbies lobbies;
+
+    public enum BetState 
+    {
+        Wait,
+        Fold,
+        Check,
+        Raise,
+        Call
+    }
+
+    enum GameState
+    {
+        Menu,
+        Spec,
+        Ingame
+    }
 
     public NetworkVariableInt clientID = new NetworkVariableInt(new NetworkVariableSettings
         {
@@ -61,14 +78,39 @@ public class Player : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
+    public NetworkVariable<bool> isTurn = new NetworkVariable<bool>(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
+    public NetworkVariableString betGoText = new NetworkVariableString(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
+    public NetworkVariable<BetState> betState = new NetworkVariable<BetState>(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
     public GameObject foldGo;
     public GameObject card1;
     public GameObject card2;
+    public GameObject betGo;
+    public GameObject animation;
+    public GameObject ownerGo;
+    GameObject text;
+
+
 
     public string Channel = "MLAPI_DEFAULT_MESSAGE";
 
     void Start()
     {
+        text = betGo.transform.Find("Text").gameObject;
         this.name = "PL" + OwnerClientId;
 
         if(IsOwner){
@@ -81,6 +123,7 @@ public class Player : NetworkBehaviour
 
             t1.text = "Client ID: " + OwnerClientId;
             t2.text = "Client ID: " + OwnerClientId;
+            ownerGo.SetActive(true);
         }
 
         GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject);
@@ -101,16 +144,44 @@ public class Player : NetworkBehaviour
             }catch(NullReferenceException e) { }
             changeText("Cash", "$" + cash.Value.ToString());
 
-            if(!folded.Value) {
-                foldGo.SetActive(false);
-                card1.SetActive(true);
-                card2.SetActive(true);
+            switch (betState.Value) {
+                case BetState.Fold: 
+                    foldGo.SetActive(true);
+                    betGoText.Value = "<sprite=2>Fold";
+                    betGo.SetActive(true);
+                    card1.SetActive(false);
+                    card2.SetActive(false);
+                    break;
+                case BetState.Call:
+                    betGoText.Value = "<sprite=3>$$$";
+                    betGo.SetActive(true);
+                    foldGo.SetActive(false);
+                    card1.SetActive(true);
+                    card2.SetActive(true);  
+                    break;
+                case BetState.Raise:
+                    betGoText.Value = "<sprite=0>$$$";
+                    betGo.SetActive(true);
+                    foldGo.SetActive(false);
+                    card1.SetActive(true);
+                    card2.SetActive(true);
+                    break;
+                case BetState.Wait:
+                    betGo.SetActive(false);
+                    foldGo.SetActive(false);
+                    card1.SetActive(true);
+                    card2.SetActive(true);
+                    break;
             }
-            if(folded.Value) {
-                foldGo.SetActive(true);
-                card1.SetActive(false);
-                card2.SetActive(false);
+            
+            if(isTurn.Value) {
+                animation.SetActive(true);
             }
+            else{
+                animation.SetActive(false);
+            }
+
+            text.GetComponent<TextMeshProUGUI>().text = betGoText.Value;
         }
     }
 
@@ -123,18 +194,13 @@ public class Player : NetworkBehaviour
         objectText.text = newText;
     }
 
-    public void dealCards(string card1, string card2) {
-        Transform card1transform = gameObject.transform.Find("Card1");
-        GameObject card1go = card1transform.gameObject;
-        card1transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
-        Image card1image = card1go.GetComponent<Image>();
-        card1image.sprite = Resources.Load<Sprite>("Cards/" + card1);
+    public void dealCards(string c1, string c2) {
 
-        Transform card2transform = gameObject.transform.Find("Card2");
-        GameObject card2go = card2transform.gameObject;
-        card2transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
-        Image card2image = card2go.GetComponent<Image>();
-        card2image.sprite = Resources.Load<Sprite>("Cards/" + card2);
+        card1.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
+        card1.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + c1);
+
+        card2.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
+        card2.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + c2);
 
         folded.Value = false;
     }
@@ -203,22 +269,44 @@ public class Player : NetworkBehaviour
     }
 
     ////GAME 
-
+    //sprites: 0 = raise, 1 = check, 2 = fold, 3 = call
     public void fold() {
         folded.Value = true;
         currentLobby.Value.GetComponent<DataManager>().playerFoldServerRpc(OwnerClientId);
+
+        betState.Value = BetState.Fold;
     }
 
     public void check() {
-
+        betState.Value = BetState.Check;
     }
 
     public void call() {
-
+        betGoText.Value = "<sprite=3>$$$";
+        betState.Value = BetState.Call;
     }
 
     public void raise() {
-
+        betGoText.Value = "<sprite=0>$$$";
+        betState.Value = BetState.Raise;
     }
+
+    public void resetBetState() {
+        if(betState.Value != BetState.Fold)
+        {
+            betState.Value = BetState.Wait;
+        }
+    }
+
+    public void turn() {
+        if(isTurn.Value) {
+            isTurn.Value = false;
+        }
+        else {
+            isTurn.Value = true;
+        }
+    }
+
+
     
 }

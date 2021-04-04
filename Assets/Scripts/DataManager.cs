@@ -124,6 +124,10 @@ public class DataManager : NetworkBehaviour
                         else if (prevStage == Stage.Deal) {
                             currentStage = Stage.Flop1;
                         }
+                        if(currentStage != Stage.End){
+                            orderPlayers(true);
+                            resetBetStateClientRpc(clientRpcParams);
+                        }
                     }
                     else {
                         currentStage = Stage.Wait;
@@ -133,7 +137,7 @@ public class DataManager : NetworkBehaviour
                 if(currentStage == Stage.Deal) {
                     dealCardsClientRpc(clientRpcParams);
                     orderPlayers(false);
-
+                    deal();
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
                 }
@@ -250,6 +254,7 @@ public class DataManager : NetworkBehaviour
     public void nextTurnClientRpc(int id) {
         if(id == (int)NetworkManager.Singleton.LocalClientId) {
             buttons.SetActive(true);
+            GetLocalPlayerObject().GetComponent<Player>().turn();
         }
     }
 
@@ -257,6 +262,7 @@ public class DataManager : NetworkBehaviour
     public void endTurnClientRpc(int id, ClientRpcParams clientRpcParams) {
         if(id == (int)NetworkManager.Singleton.LocalClientId) {
             buttons.SetActive(false);
+            GetLocalPlayerObject().GetComponent<Player>().turn();
         }
     }
 
@@ -341,7 +347,16 @@ public class DataManager : NetworkBehaviour
     public void playerFoldServerRpc(ulong senderId) {
         time = NetworkManager.Singleton.NetworkTime; //force loop update
         Debug.Log("player fold called");
+    }
 
+    [ServerRpc]
+    public void playerCallServerRpc(ulong senderID) {
+        //
+    }
+
+    [ClientRpc]
+    public void resetBetStateClientRpc(ClientRpcParams clientRpcParams) {
+        GetLocalPlayerObject().GetComponent<Player>().resetBetState();
     }
 
     public void addPlayer(GameObject player) {

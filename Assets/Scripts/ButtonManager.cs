@@ -24,6 +24,8 @@ public class ButtonManager : NetworkBehaviour
     public GameObject callButton;
     public GameObject raiseButton;
     public GameObject slider;
+    public GameObject callText;
+    public GameObject raiseText;
 
     void Start() {
         //NetworkingManager.Singleton.StartServer();
@@ -52,12 +54,13 @@ public class ButtonManager : NetworkBehaviour
 
     public void onCallClicked()
     {
+        GetLocalPlayerObject().GetComponent<Player>().call();
 
     }
 
     public void onRaiseClicked() 
     {
-
+        GetLocalPlayerObject().GetComponent<Player>().raise();
     }
 
     public void onSliderChanged()
