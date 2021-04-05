@@ -239,7 +239,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &157472577019627580
 RectTransform:
   m_ObjectHideFlags: 0
@@ -970,6 +970,7 @@ MonoBehaviour:
   betGo: {fileID: 4618362345345740842}
   animation: {fileID: 8113298554116233866}
   ownerGo: {fileID: 8297008295170036252}
+  buttonManager: {fileID: 0}
   Channel: MLAPI_DEFAULT_MESSAGE
 --- !u!114 &6177167583812633661
 MonoBehaviour:
@@ -1005,7 +1006,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5517011280803392291
 RectTransform:
   m_ObjectHideFlags: 0

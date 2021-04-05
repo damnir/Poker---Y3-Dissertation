@@ -60,13 +60,13 @@ public class Player : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
-    public NetworkVariableInt cash = new NetworkVariableInt(new NetworkVariableSettings
+    public NetworkVariable<ulong> cash = new NetworkVariable<ulong>(new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER ONLY LATER
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
-    public NetworkVariableInt currentBet = new NetworkVariableInt(new NetworkVariableSettings
+    public NetworkVariable<ulong> currentBet = new NetworkVariable<ulong>(new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
             ReadPermission = NetworkVariablePermission.Everyone
@@ -104,12 +104,15 @@ public class Player : NetworkBehaviour
     public GameObject ownerGo;
     GameObject text;
 
+    public GameObject buttonManager;
+
 
 
     public string Channel = "MLAPI_DEFAULT_MESSAGE";
 
     void Start()
     {
+        buttonManager = GameObject.Find("ButtonManager");
         text = betGo.transform.Find("Text").gameObject;
         this.name = "PL" + OwnerClientId;
 
@@ -153,7 +156,11 @@ public class Player : NetworkBehaviour
                     card2.SetActive(false);
                     break;
                 case BetState.Call:
-                    betGoText.Value = "<sprite=3>$$$";
+                    //betGoText.Value = "<sprite=3>$$$";
+                    if(currentBet.Value < 1)
+                    {
+                        betGoText.Value = "<sprite=1>Check";
+                    }
                     betGo.SetActive(true);
                     foldGo.SetActive(false);
                     card1.SetActive(true);
@@ -174,8 +181,12 @@ public class Player : NetworkBehaviour
                     break;
             }
             
-            if(isTurn.Value) {
+            if(isTurn.Value == true) {
                 animation.SetActive(true);
+                if (IsOwner)
+                {
+                    buttonManager.GetComponent<ButtonManager>().updateCall(currentLobby.Value.GetComponent<DataManager>().currentBet.Value);
+                }
             }
             else{
                 animation.SetActive(false);
@@ -201,6 +212,7 @@ public class Player : NetworkBehaviour
 
         card2.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
         card2.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + c2);
+        //currentBet.Value = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
 
         folded.Value = false;
     }
@@ -282,7 +294,10 @@ public class Player : NetworkBehaviour
     }
 
     public void call() {
-        betGoText.Value = "<sprite=3>$$$";
+        currentBet.Value = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
+        cash.Value -= (ulong)currentBet.Value;
+        betGoText.Value = "<sprite=3>"+currentBet.Value;
+        currentLobby.Value.GetComponent<DataManager>().playerCallServerRpc(OwnerClientId, currentBet.Value);
         betState.Value = BetState.Call;
     }
 
@@ -298,13 +313,10 @@ public class Player : NetworkBehaviour
         }
     }
 
-    public void turn() {
-        if(isTurn.Value) {
-            isTurn.Value = false;
-        }
-        else {
-            isTurn.Value = true;
-        }
+    public void turn(bool turn) {
+        //currentBet.Value = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
+
+        isTurn.Value = turn;
     }
 
 

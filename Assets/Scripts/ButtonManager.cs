@@ -10,6 +10,7 @@ using MLAPI.Serialization.Pooled;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using static MLAPI.Spawning.NetworkSpawnManager;
 
 
@@ -26,6 +27,7 @@ public class ButtonManager : NetworkBehaviour
     public GameObject slider;
     public GameObject callText;
     public GameObject raiseText;
+    public GameObject checkText;
 
     void Start() {
         //NetworkingManager.Singleton.StartServer();
@@ -64,6 +66,24 @@ public class ButtonManager : NetworkBehaviour
     }
 
     public void onSliderChanged()
+    {
+
+    }
+
+    public void updateCall(ulong value)
+    {
+        if (value > 0)
+        {
+            checkText.GetComponent<TextMeshProUGUI>().text = "<sprite=3>Call";
+        }
+        else
+        {
+            checkText.GetComponent<TextMeshProUGUI>().text = "<sprite=1>Check";
+        }
+        callText.GetComponent<Text>().text = "$" + value;
+    }
+
+    public void updateRaise()
     {
 
     }

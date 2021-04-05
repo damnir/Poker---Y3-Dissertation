@@ -57,15 +57,24 @@ public class DataManager : NetworkBehaviour
     Stage currentStage;
     Stage prevStage;
 
-    public int smallBlind;
-    public int bigBlind;
-    public int mainPot;
-    public int sidePot;
-    public int currentBet;
-
+    public ulong smallBlind;
+    public ulong bigBlind;
+    //public int mainPot;
+    public ulong sidePot;
+    public NetworkVariable<ulong> currentBet = new NetworkVariable<ulong>(new NetworkVariableSettings
+    {
+        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        ReadPermission = NetworkVariablePermission.Everyone
+    });
+    public NetworkVariable<ulong> mainPot = new NetworkVariable<ulong>(new NetworkVariableSettings
+    {
+        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        ReadPermission = NetworkVariablePermission.Everyone
+    });
     ClientRpcParams clientRpcParams = new ClientRpcParams();
 
     public GameObject buttons;
+    public GameObject pot;
 
     void Start()
     {
@@ -127,6 +136,7 @@ public class DataManager : NetworkBehaviour
                         if(currentStage != Stage.End){
                             orderPlayers(true);
                             resetBetStateClientRpc(clientRpcParams);
+                            updatePotClientRpc(clientRpcParams);
                         }
                     }
                     else {
@@ -135,9 +145,12 @@ public class DataManager : NetworkBehaviour
                 }
 
                 if(currentStage == Stage.Deal) {
+                    deal();
+                    currentBet.Value = bigBlind;
+
                     dealCardsClientRpc(clientRpcParams);
                     orderPlayers(false);
-                    deal();
+
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
                 }
@@ -170,7 +183,7 @@ public class DataManager : NetworkBehaviour
                 }
 
                 if(currentStage == Stage.Wait) {
-                    nextTurnClientRpc(playerOrder[0]);  
+                    nextTurnClientRpc(playerOrder[0]);
                     currentStage = Stage.WaitEnd;                  
                 }
 
@@ -249,12 +262,17 @@ public class DataManager : NetworkBehaviour
             }
         }
     }
+    [ClientRpc]
+    public void updatePotClientRpc(ClientRpcParams clientRpcParams)
+    {
+        pot.GetComponent<Text>().text = "$"+mainPot.Value.ToString();
+    }
 
     [ClientRpc]
     public void nextTurnClientRpc(int id) {
         if(id == (int)NetworkManager.Singleton.LocalClientId) {
             buttons.SetActive(true);
-            GetLocalPlayerObject().GetComponent<Player>().turn();
+            GetLocalPlayerObject().GetComponent<Player>().turn(true);
         }
     }
 
@@ -262,7 +280,7 @@ public class DataManager : NetworkBehaviour
     public void endTurnClientRpc(int id, ClientRpcParams clientRpcParams) {
         if(id == (int)NetworkManager.Singleton.LocalClientId) {
             buttons.SetActive(false);
-            GetLocalPlayerObject().GetComponent<Player>().turn();
+            GetLocalPlayerObject().GetComponent<Player>().turn(false);
         }
     }
 
@@ -288,6 +306,7 @@ public class DataManager : NetworkBehaviour
             deck.RemoveAt(r);
             riverCards.Add(card);
         }
+        currentBet.Value = 0;
     }
 
     [ClientRpc]
@@ -306,6 +325,7 @@ public class DataManager : NetworkBehaviour
         string card = deck[r];
         deck.RemoveAt(r);
         riverCards.Add(card);
+        currentBet.Value = 0;
     }
 
     [ClientRpc]
@@ -321,6 +341,7 @@ public class DataManager : NetworkBehaviour
         string card = deck[r];
         deck.RemoveAt(r);
         riverCards.Add(card);
+        currentBet.Value = 0;
     }
 
     [ClientRpc]
@@ -349,9 +370,10 @@ public class DataManager : NetworkBehaviour
         Debug.Log("player fold called");
     }
 
-    [ServerRpc]
-    public void playerCallServerRpc(ulong senderID) {
-        //
+    [ServerRpc(RequireOwnership = false)]
+    public void playerCallServerRpc(ulong senderID, ulong bet) {
+        mainPot.Value += bet;
+        time = NetworkManager.Singleton.NetworkTime; //force loop update
     }
 
     [ClientRpc]

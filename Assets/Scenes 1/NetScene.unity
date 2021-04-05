@@ -2342,6 +2342,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
+      propertyPath: pot
+      value: 
+      objectReference: {fileID: 1623631664}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
       propertyPath: seat1
       value: 
       objectReference: {fileID: 255863470}
@@ -2715,7 +2720,7 @@ MonoBehaviour:
   MessageBufferSize: 5120
   MaxConnections: 100
   MaxSentMessageQueueSize: 128
-  ConnectAddress: 192.168.0.57
+  ConnectAddress: 192.168.0.22
   ConnectPort: 7777
   ServerListenPort: 7777
   ServerWebsocketListenPort: 8887
@@ -2935,6 +2940,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lobby02
       objectReference: {fileID: 0}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: pot
+      value: 
+      objectReference: {fileID: 1623631664}
     - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
       propertyPath: seat1
@@ -6532,7 +6542,7 @@ PrefabInstance:
     - target: {fileID: 7044764698552653138, guid: 4be0681f0c8d0834cbfb64dd9fcce031,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7044764698552653139, guid: 4be0681f0c8d0834cbfb64dd9fcce031,
         type: 3}
@@ -6838,6 +6848,11 @@ PrefabInstance:
       propertyPath: callText
       value: 
       objectReference: {fileID: 62438374}
+    - target: {fileID: 7126499962851112578, guid: a167620ad83590f44a558147c7d6daa8,
+        type: 3}
+      propertyPath: checkText
+      value: 
+      objectReference: {fileID: 146084458}
     - target: {fileID: 7126499962851112578, guid: a167620ad83590f44a558147c7d6daa8,
         type: 3}
       propertyPath: lobbyList
