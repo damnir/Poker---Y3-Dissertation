@@ -32,8 +32,10 @@ public class DataManager : NetworkBehaviour
     public NetworkList<string> deck = new NetworkList<string>(serverOnlyWriteSetting);
 
     //keep server only - leave empty on client side
-    public int[] seatOrder = new int[7];
-    public List<int> playerOrder = new List<int>();
+    public ulong[] seatOrder = new ulong[7];
+    public List<ulong> playerOrder = new List<ulong>();
+    public List<ulong> playerOrderRe = new List<ulong>();
+
 
     private static readonly string[] suits = new string[] { "Heart", "Spade", "Diamond", "Club"};
     private static readonly string[] values = new string[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"};
@@ -119,8 +121,10 @@ public class DataManager : NetworkBehaviour
 
                 if(currentStage == Stage.WaitEnd) {
                     endTurnClientRpc(playerOrder[0], clientRpcParams);
+                    playerOrderRe.Add(playerOrder[0]);//////////////////
                     playerOrder.RemoveAt(0);
-                    if(playerOrder.Count < 1) {
+                    if(playerOrder.Count < 1)
+                    {
                         if(prevStage == Stage.Flop1) {
                             currentStage = Stage.Flop2;
                         }
@@ -138,8 +142,10 @@ public class DataManager : NetworkBehaviour
                             resetBetStateClientRpc(clientRpcParams);
                             updatePotClientRpc(clientRpcParams);
                         }
+                        playerOrderRe.Clear();
                     }
-                    else {
+                    else
+                    {
                         currentStage = Stage.Wait;
                     }
                 }
@@ -149,6 +155,7 @@ public class DataManager : NetworkBehaviour
                     currentBet.Value = bigBlind;
 
                     dealCardsClientRpc(clientRpcParams);
+                    orderSeats();
                     orderPlayers(false);
 
                     prevStage = currentStage;
@@ -196,7 +203,7 @@ public class DataManager : NetworkBehaviour
                     currentStage = Stage.Deal;
                 }
 
-                time += 5;
+                time += 8;
             }
 
         }
@@ -235,8 +242,8 @@ public class DataManager : NetworkBehaviour
         Array.Clear(seatOrder, 0, seatOrder.Length);
 
         foreach(GameObject player in players) {
-            int seat = player.GetComponent<Player>().currentSeat.Value;
-            int pId = player.GetComponent<Player>().getPlayerID();
+            ulong seat = (ulong)player.GetComponent<Player>().currentSeat.Value;
+            ulong pId = player.GetComponent<Player>().getPlayerID();
 
             seatOrder[seat] = pId;
         }
@@ -246,7 +253,7 @@ public class DataManager : NetworkBehaviour
         playerOrder.Clear();
 
         if(reOrder) {
-            foreach (int id in seatOrder)
+            foreach (ulong id in seatOrder)
             {
                 if(id != 0 && !GetPlayerNetworkObject((ulong)id).GetComponent<Player>().folded.Value) {
                     playerOrder.Add(id);
@@ -254,13 +261,14 @@ public class DataManager : NetworkBehaviour
             } 
         }
         else {
-            foreach (int id in seatOrder)
+            foreach (ulong id in seatOrder)
             {
                 if(id != 0) {
                     playerOrder.Add(id);
                 }
             }
         }
+        playerOrder.Reverse();
     }
     [ClientRpc]
     public void updatePotClientRpc(ClientRpcParams clientRpcParams)
@@ -269,16 +277,16 @@ public class DataManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void nextTurnClientRpc(int id) {
-        if(id == (int)NetworkManager.Singleton.LocalClientId) {
+    public void nextTurnClientRpc(ulong id) {
+        if(id == NetworkManager.Singleton.LocalClientId) {
             buttons.SetActive(true);
             GetLocalPlayerObject().GetComponent<Player>().turn(true);
         }
     }
 
     [ClientRpc]
-    public void endTurnClientRpc(int id, ClientRpcParams clientRpcParams) {
-        if(id == (int)NetworkManager.Singleton.LocalClientId) {
+    public void endTurnClientRpc(ulong id, ClientRpcParams clientRpcParams) {
+        if(id == NetworkManager.Singleton.LocalClientId) {
             buttons.SetActive(false);
             GetLocalPlayerObject().GetComponent<Player>().turn(false);
         }
@@ -373,6 +381,22 @@ public class DataManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void playerCallServerRpc(ulong senderID, ulong bet) {
         mainPot.Value += bet;
+        time = NetworkManager.Singleton.NetworkTime; //force loop update
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void playerRaiseServerRpc(ulong senderID, ulong bet) {
+        mainPot.Value += bet;
+        currentBet.Value += bet;
+
+        foreach(ulong id in playerOrderRe) {
+            if(!GetPlayerNetworkObject(id).GetComponent<Player>().folded.Value)
+            {
+                playerOrder.Add(id);
+            }
+        } 
+        playerOrderRe.Clear();
+
         time = NetworkManager.Singleton.NetworkTime; //force loop update
     }
 

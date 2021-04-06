@@ -30,7 +30,7 @@ public class Player : NetworkBehaviour
         Ingame
     }
 
-    public NetworkVariableInt clientID = new NetworkVariableInt(new NetworkVariableSettings
+    public NetworkVariable<ulong> clientID = new NetworkVariable<ulong>(new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
             ReadPermission = NetworkVariablePermission.Everyone
@@ -117,7 +117,7 @@ public class Player : NetworkBehaviour
         this.name = "PL" + OwnerClientId;
 
         if(IsOwner){
-            clientID.Value = (int)OwnerClientId;
+            clientID.Value = OwnerClientId;
 
             Text t1 = GameObject.Find("CLIENT_TEXT").GetComponent<Text>();
             Text t2 = GameObject.Find("CLIENT_TEXT2").GetComponent<Text>();
@@ -136,7 +136,7 @@ public class Player : NetworkBehaviour
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
     }
 
-    public int getPlayerID () { return clientID.Value; }
+    public ulong getPlayerID () { return clientID.Value; }
 
     // Update is called once per frame
     void Update()
@@ -167,7 +167,7 @@ public class Player : NetworkBehaviour
                     card2.SetActive(true);  
                     break;
                 case BetState.Raise:
-                    betGoText.Value = "<sprite=0>$$$";
+                    //betGoText.Value = "<sprite=0>$$$";
                     betGo.SetActive(true);
                     foldGo.SetActive(false);
                     card1.SetActive(true);
@@ -186,6 +186,8 @@ public class Player : NetworkBehaviour
                 if (IsOwner)
                 {
                     buttonManager.GetComponent<ButtonManager>().updateCall(currentLobby.Value.GetComponent<DataManager>().currentBet.Value);
+                    buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().currentBet.Value
+                    +currentLobby.Value.GetComponent<DataManager>().bigBlind, cash.Value);
                 }
             }
             else{
@@ -215,6 +217,8 @@ public class Player : NetworkBehaviour
         //currentBet.Value = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
 
         folded.Value = false;
+        betState.Value = BetState.Wait;
+
     }
 
     public void changeLobby(GameObject lobby) 
@@ -301,8 +305,11 @@ public class Player : NetworkBehaviour
         betState.Value = BetState.Call;
     }
 
-    public void raise() {
-        betGoText.Value = "<sprite=0>$$$";
+    public void raise(ulong bet) {
+        cash.Value -= bet;
+        currentBet.Value = bet;
+        currentLobby.Value.GetComponent<DataManager>().playerRaiseServerRpc(OwnerClientId, bet);
+        betGoText.Value = "<sprite=0>$"+bet;
         betState.Value = BetState.Raise;
     }
 
@@ -317,6 +324,7 @@ public class Player : NetworkBehaviour
         //currentBet.Value = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
 
         isTurn.Value = turn;
+        //betState.Value = BetState.Wait;
     }
 
 

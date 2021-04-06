@@ -62,7 +62,7 @@ public class ButtonManager : NetworkBehaviour
 
     public void onRaiseClicked() 
     {
-        GetLocalPlayerObject().GetComponent<Player>().raise();
+        GetLocalPlayerObject().GetComponent<Player>().raise((ulong)slider.GetComponent<Slider>().value);
     }
 
     public void onSliderChanged()
@@ -83,8 +83,16 @@ public class ButtonManager : NetworkBehaviour
         callText.GetComponent<Text>().text = "$" + value;
     }
 
-    public void updateRaise()
+    public void updateRaise(ulong min, ulong max)
     {
-
+        //slider.GetComponent<Slider>().value = min;
+        slider.GetComponent<Slider>().minValue = min;
+        slider.GetComponent<Slider>().maxValue = max;
+        raiseText.GetComponent<Text>().text ="$"+(ulong)slider.GetComponent<Slider>().value;
     }
+
+    public void onSliderValueChanged() {
+        raiseText.GetComponent<Text>().text ="$"+(ulong)slider.GetComponent<Slider>().value;
+    }
+
 }
