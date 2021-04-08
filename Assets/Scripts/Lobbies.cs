@@ -11,38 +11,15 @@ public class Lobbies : NetworkBehaviour
     
     public List<GameObject> connectedPlayers;
 
-    public override void NetworkStart() 
-    {
-
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public void addPlayer(GameObject pp)
     {
         connectedPlayers.Add(pp);
-    }
-
-    public void addPlayerToLobby(int lobby, GameObject player)
-    {
-      
     }
 
     public GameObject getLobby(int i)
     {
         return lobbies[i];
     }
-
 
     public GameObject getPlayerGoById(ulong clientId) {
         foreach (GameObject player in connectedPlayers)

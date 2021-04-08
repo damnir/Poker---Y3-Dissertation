@@ -65,11 +65,6 @@ public class ButtonManager : NetworkBehaviour
         GetLocalPlayerObject().GetComponent<Player>().raise((ulong)slider.GetComponent<Slider>().value);
     }
 
-    public void onSliderChanged()
-    {
-
-    }
-
     public void updateCall(ulong value)
     {
         if (value > 0)

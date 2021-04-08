@@ -22,6 +22,7 @@ public class DataManager : NetworkBehaviour
         };
 
     public NetworkList<string> riverCards = new NetworkList<string>(serverOnlyWriteSetting);
+    //public List<string> riverCards = new List<string>();
 
     public NetworkVariableInt playerNum = new NetworkVariableInt(serverOnlyWriteSetting);
 
@@ -44,6 +45,7 @@ public class DataManager : NetworkBehaviour
 
     public float time;
     public int maxPlayers;
+    public int dealer = 0;
 
     enum Stage
     {
@@ -153,10 +155,15 @@ public class DataManager : NetworkBehaviour
                 if(currentStage == Stage.Deal) {
                     deal();
                     currentBet.Value = bigBlind;
-
-                    dealCardsClientRpc(clientRpcParams);
                     orderSeats();
                     orderPlayers(false);
+                    dealCardsClientRpc(clientRpcParams);
+
+                    dealer++;
+                    if(dealer > 6) {
+                        dealer = 0;
+                    }
+
 
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
@@ -195,10 +202,16 @@ public class DataManager : NetworkBehaviour
                 }
 
                 if( currentStage == Stage.End) {
+
+                    ////
+                    evaluateHand();
+                    riverCards = new NetworkList<string>(serverOnlyWriteSetting);
+                    Debug.Log("River Cards Count: " + riverCards.Count);
+
                     endStage();
                     endStageClientRpc(clientRpcParams);
-                    orderSeats();
-                    orderPlayers(false);
+
+                    ///
                     prevStage = currentStage;
                     currentStage = Stage.Deal;
                 }
@@ -215,12 +228,22 @@ public class DataManager : NetworkBehaviour
     }
 
     public void clientDisconnect(ulong id) {
+
         if(IsServer){
             Debug.Log("Client Disconnected. ID: " + id);
             //GameObject dp = players.Find(x => x.Contains.GetComponent<Player>().getPlayerID());
             if(playerIds.Contains(id)){
                 this.playerNum.Value--;
+                for(int i = 0; i < seatOrder.Length; i++) {
+                    if(seatOrder[i] == id){
+                        seatOrder[i] = 0;
+                    }
+                }
+                playerOrder.Remove(id);
+                playerOrderRe.Remove(id);
+                playerIds.Remove(id);
             }
+
         }
     }
 
@@ -251,14 +274,24 @@ public class DataManager : NetworkBehaviour
 
     public void orderPlayers(bool reOrder) {
         playerOrder.Clear();
-
+        int folded = 0;
         if(reOrder) {
             foreach (ulong id in seatOrder)
             {
                 if(id != 0 && !GetPlayerNetworkObject((ulong)id).GetComponent<Player>().folded.Value) {
                     playerOrder.Add(id);
                 }
+                else if (id != 0 && GetPlayerNetworkObject((ulong)id).GetComponent<Player>().folded.Value){
+                    folded++;
+                }
             } 
+            playerOrder.Reverse();
+
+            for(int i = 0; i < dealer-folded; i++){
+                ulong temp = playerOrder[0];
+                playerOrder.Add(temp);
+                playerOrder.RemoveAt(0);
+            }
         }
         else {
             foreach (ulong id in seatOrder)
@@ -267,8 +300,15 @@ public class DataManager : NetworkBehaviour
                     playerOrder.Add(id);
                 }
             }
+            
+            playerOrder.Reverse();
+            
+            for(int i = 0; i < dealer; i++){
+                ulong temp = playerOrder[0];
+                playerOrder.Add(temp);
+                playerOrder.RemoveAt(0);
+            }
         }
-        playerOrder.Reverse();
     }
     [ClientRpc]
     public void updatePotClientRpc(ClientRpcParams clientRpcParams)
@@ -293,17 +333,18 @@ public class DataManager : NetworkBehaviour
     }
 
     public void deal () {
-
+        //currentBet.Value = bigBlind;
+        //nextTurnClientRpc(playerOrder[0], )
     }
 
     [ClientRpc]
     public void dealCardsClientRpc(ClientRpcParams clientRpcParams) {
         int r = UnityEngine.Random.Range(0, deck.Count);
         string card1 = deck[r];
-        deck.RemoveAt(r);
+        //deck.RemoveAt(r);
         r = UnityEngine.Random.Range(0, deck.Count);
         string card2 = deck[r];
-        deck.RemoveAt(r);
+        //deck.RemoveAt(r);
         GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().dealCards(card1, card2);
     }
 
@@ -319,12 +360,15 @@ public class DataManager : NetworkBehaviour
 
     [ClientRpc]
     public void flop1ClientRpc(ClientRpcParams clientRpcParams) {
-        for(int i = 0; i < 3; i++)
+        if(GetLocalPlayerObject().GetComponent<Player>().currentLobby.Value == this.gameObject)
         {
-            GameObject card = river[i];
-            card.SetActive(true);
-            Image cardImage = card.GetComponent<Image>();
-            cardImage.sprite = Resources.Load<Sprite>("Cards/" + riverCards[i]);
+            for(int i = 0; i < 3; i++)
+            {
+                GameObject card = river[i];
+                card.SetActive(true);
+                Image cardImage = card.GetComponent<Image>();
+                cardImage.sprite = Resources.Load<Sprite>("Cards/" + riverCards[i]);
+            }
         }
     }
 
@@ -370,6 +414,7 @@ public class DataManager : NetworkBehaviour
         foreach(GameObject card in river) {
             card.SetActive(false);
         }
+        Debug.Log("River Cards Count(CLIENT): " + riverCards.Count);
     }
     
     [ServerRpc(RequireOwnership = false)]
@@ -416,13 +461,12 @@ public class DataManager : NetworkBehaviour
 
     public void generateDeck()
     {
-        int i = 0;
+        deck.Clear();
         foreach (string s in suits)
         {
             foreach (string v in values)
             {
-                deck.Add(s + v);
-                i++;
+                deck.Add(s + "-" + v);
             }
         }
     }
@@ -439,7 +483,33 @@ public class DataManager : NetworkBehaviour
         }
     }
 
-    public string evaluateHand(List<string> cards) {
+    public string evaluateHand() {
+
+        //Replace 7 with cards.len later and also in loops ennit
+        string[,] asd = new string[7, 2]; //split into [card][suit, value]
+
+        int i = 0;
+        foreach(string card in riverCards) {
+            string[] split = card.Split('-');
+            asd[i,0] = split[0];
+            asd[i,1] = split[1];
+            i++;
+        }
+
+        int highCard = 0;
+
+        for(i = 0; i < 5; i++) 
+        {
+            int val = Int32.Parse(asd[i,1]);
+            if(val == 1){
+                highCard = 14;
+            }
+            if(val > highCard){
+                highCard = val;
+            }
+        }
+        Debug.Log("HIGH CARD: " + highCard);
+
         return null;
     }
 
