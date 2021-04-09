@@ -21,22 +21,25 @@ public class DataManager : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         };
 
-    public NetworkList<string> riverCards = new NetworkList<string>(serverOnlyWriteSetting);
-    //public List<string> riverCards = new List<string>();
+    public string[] riverCards = new string[5];
 
-    public NetworkVariableInt playerNum = new NetworkVariableInt(serverOnlyWriteSetting);
+    /*
+    public NetworkList<string> deck = new NetworkList<string>(new NetworkVariableSettings
+    {
+        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        ReadPermission = NetworkVariablePermission.Everyone
+    });*/
 
-    public NetworkList<GameObject> players = new NetworkList<GameObject>(serverOnlyWriteSetting);
+    public List<string> deck = new List<string>();
 
-    public NetworkList<ulong> playerIds = new NetworkList<ulong>(serverOnlyWriteSetting);
-
-    public NetworkList<string> deck = new NetworkList<string>(serverOnlyWriteSetting);
+    public List<GameObject> players = new List<GameObject>();
+    public List<ulong> playerIds = new List<ulong>();
+    public int playerNum;
 
     //keep server only - leave empty on client side
     public ulong[] seatOrder = new ulong[7];
     public List<ulong> playerOrder = new List<ulong>();
     public List<ulong> playerOrderRe = new List<ulong>();
-
 
     private static readonly string[] suits = new string[] { "Heart", "Spade", "Diamond", "Club"};
     private static readonly string[] values = new string[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13"};
@@ -47,7 +50,7 @@ public class DataManager : NetworkBehaviour
     public int maxPlayers;
     public int dealer = 0;
 
-    enum Stage
+    public enum Stage
     {
         Wait,
         WaitEnd,
@@ -63,8 +66,8 @@ public class DataManager : NetworkBehaviour
 
     public ulong smallBlind;
     public ulong bigBlind;
-    //public int mainPot;
     public ulong sidePot;
+
     public NetworkVariable<ulong> currentBet = new NetworkVariable<ulong>(new NetworkVariableSettings
     {
         WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
@@ -75,6 +78,7 @@ public class DataManager : NetworkBehaviour
         WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
         ReadPermission = NetworkVariablePermission.Everyone
     });
+
     ClientRpcParams clientRpcParams = new ClientRpcParams();
 
     public GameObject buttons;
@@ -105,10 +109,10 @@ public class DataManager : NetworkBehaviour
     {
         if(IsServer) {
 
-            if(playerNum.Value < 2) {
+            if(playerNum < 2) {
                 gameActive = false;
             }
-            if(!gameActive && playerNum.Value >= 2) {
+            if(!gameActive && playerNum >= 2) {
                 orderSeats();
                 orderPlayers(false);
                 if(playerOrder.Count >= 2){
@@ -153,44 +157,36 @@ public class DataManager : NetworkBehaviour
                 }
 
                 if(currentStage == Stage.Deal) {
-                    deal();
                     currentBet.Value = bigBlind;
                     orderSeats();
                     orderPlayers(false);
-                    dealCardsClientRpc(clientRpcParams);
+                    deal();
 
                     dealer++;
                     if(dealer > 6) {
                         dealer = 0;
                     }
 
-
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
                 }
 
                 if( currentStage == Stage.Flop1) {
-                    flop1();
-                    flop1ClientRpc(clientRpcParams);
-
+                    postFlop(Stage.Flop1);
                     orderPlayers(true);
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
                 }
 
                 if( currentStage == Stage.Flop2) {
-                    flop2();
-                    flop2ClientRpc(clientRpcParams);
-
+                    postFlop(Stage.Flop2);
                     orderPlayers(true);
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
                 }
 
                 if( currentStage == Stage.Flop3) {
-                    flop3();
-                    flop3ClientRpc(clientRpcParams);
-
+                    postFlop(Stage.Flop3);
                     orderPlayers(true);
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
@@ -202,28 +198,16 @@ public class DataManager : NetworkBehaviour
                 }
 
                 if( currentStage == Stage.End) {
-
-                    ////
                     evaluateHand();
-                    riverCards = new NetworkList<string>(serverOnlyWriteSetting);
-                    Debug.Log("River Cards Count: " + riverCards.Count);
-
                     endStage();
                     endStageClientRpc(clientRpcParams);
 
-                    ///
                     prevStage = currentStage;
                     currentStage = Stage.Deal;
                 }
 
                 time += 8;
             }
-
-        }
-
-        //re
-        if(IsServer) {
-
         }
     }
 
@@ -233,7 +217,7 @@ public class DataManager : NetworkBehaviour
             Debug.Log("Client Disconnected. ID: " + id);
             //GameObject dp = players.Find(x => x.Contains.GetComponent<Player>().getPlayerID());
             if(playerIds.Contains(id)){
-                this.playerNum.Value--;
+                this.playerNum--;
                 for(int i = 0; i < seatOrder.Length; i++) {
                     if(seatOrder[i] == id){
                         seatOrder[i] = 0;
@@ -248,7 +232,7 @@ public class DataManager : NetworkBehaviour
     }
 
     public int getPlayerNum() {
-        return playerNum.Value;
+        return playerNum;
     }
 
     public void updateClientParams() {
@@ -333,75 +317,59 @@ public class DataManager : NetworkBehaviour
     }
 
     public void deal () {
-        //currentBet.Value = bigBlind;
-        //nextTurnClientRpc(playerOrder[0], )
+        //dealCardsClientRpc(clientRpcParams);
+        string card1;
+        string card2;
+        foreach(ulong id in playerOrder)
+        {
+            card1 = getRandomCard();
+            card2 = getRandomCard();
+            GetPlayerNetworkObject(id).GetComponent<Player>().dealCards(card1, card2);
+        }
     }
 
+    /*
     [ClientRpc]
     public void dealCardsClientRpc(ClientRpcParams clientRpcParams) {
-        int r = UnityEngine.Random.Range(0, deck.Count);
-        string card1 = deck[r];
-        //deck.RemoveAt(r);
-        r = UnityEngine.Random.Range(0, deck.Count);
-        string card2 = deck[r];
-        //deck.RemoveAt(r);
+        string card1 = getRandomCard();
+        string card2 = getRandomCard();
         GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().dealCards(card1, card2);
-    }
+    }*/
 
-    public void flop1() {
-        for (int i = 0; i < 3; i++) {
-            int r = UnityEngine.Random.Range(0, deck.Count);
-            string card = deck[r];
-            deck.RemoveAt(r);
-            riverCards.Add(card);
+    public void postFlop(Stage stage)
+    {
+        switch(stage){
+            case Stage.Flop1:
+                for (int i = 0; i < 3; i++)
+                {
+                    riverCards[i] = getRandomCard();
+                }  
+                postFlopClientRpc(riverCards, 3, clientRpcParams);
+                break;
+            case Stage.Flop2:
+                riverCards[3] = getRandomCard();
+                postFlopClientRpc(riverCards, 4, clientRpcParams);
+                break;
+            case Stage.Flop3:
+                riverCards[4] = getRandomCard();
+                postFlopClientRpc(riverCards, 5, clientRpcParams);
+                break;
         }
         currentBet.Value = 0;
     }
 
     [ClientRpc]
-    public void flop1ClientRpc(ClientRpcParams clientRpcParams) {
+    public void postFlopClientRpc(string[] cards, int stage, ClientRpcParams clientRpcParams) {
         if(GetLocalPlayerObject().GetComponent<Player>().currentLobby.Value == this.gameObject)
         {
-            for(int i = 0; i < 3; i++)
+            for(int i = 0; i < stage; i++)
             {
                 GameObject card = river[i];
                 card.SetActive(true);
                 Image cardImage = card.GetComponent<Image>();
-                cardImage.sprite = Resources.Load<Sprite>("Cards/" + riverCards[i]);
+                cardImage.sprite = Resources.Load<Sprite>("Cards/" + cards[i]);
             }
         }
-    }
-
-    public void flop2() {
-        int r = UnityEngine.Random.Range(0, deck.Count);
-        string card = deck[r];
-        deck.RemoveAt(r);
-        riverCards.Add(card);
-        currentBet.Value = 0;
-    }
-
-    [ClientRpc]
-    public void flop2ClientRpc(ClientRpcParams clientRpcParams) {
-        GameObject card = river[3];
-        card.SetActive(true);
-        Image cardImage = card.GetComponent<Image>();
-        cardImage.sprite = Resources.Load<Sprite>("Cards/" + riverCards[3]);
-    }
-
-    public void flop3() {
-        int r = UnityEngine.Random.Range(0, deck.Count);
-        string card = deck[r];
-        deck.RemoveAt(r);
-        riverCards.Add(card);
-        currentBet.Value = 0;
-    }
-
-    [ClientRpc]
-    public void flop3ClientRpc(ClientRpcParams clientRpcParams) {
-        GameObject card = river[4];
-        card.SetActive(true);
-        Image cardImage = card.GetComponent<Image>();
-        cardImage.sprite = Resources.Load<Sprite>("Cards/" + riverCards[4]);
     }
 
     public void endStage() {
@@ -414,12 +382,14 @@ public class DataManager : NetworkBehaviour
         foreach(GameObject card in river) {
             card.SetActive(false);
         }
-        Debug.Log("River Cards Count(CLIENT): " + riverCards.Count);
+        //Debug.Log("River Cards Count(CLIENT): " + riverCards.Count);
     }
     
     [ServerRpc(RequireOwnership = false)]
     public void playerFoldServerRpc(ulong senderId) {
         time = NetworkManager.Singleton.NetworkTime; //force loop update
+        //playerOrder.Remove(senderId);
+        //playerOrderRe.Remove(senderId);
         Debug.Log("player fold called");
     }
 
@@ -450,12 +420,21 @@ public class DataManager : NetworkBehaviour
         GetLocalPlayerObject().GetComponent<Player>().resetBetState();
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    public void addPlayerServerRpc(ulong id)
+    {
+        players.Add(GetPlayerNetworkObject(id).gameObject);
+        playerIds.Add(id);
+        Debug.Log("Added player [ServerRpc]: Client ID: " + id);
+        playerNum++; 
+    }
+
     public void addPlayer(GameObject player) {
         if(IsServer) {
             players.Add(player);
             playerIds.Add((ulong)player.GetComponent<Player>().getPlayerID());
             Debug.Log("Added player: " + player.name);
-            playerNum.Value++;
+            playerNum++;
         }
     }
 
@@ -483,31 +462,52 @@ public class DataManager : NetworkBehaviour
         }
     }
 
+    public string getRandomCard() {
+        int r = UnityEngine.Random.Range(0, deck.Count);
+        string card = deck[r];
+        deck.RemoveAt(r);
+        return card;
+    }
+
     public string evaluateHand() {
 
         //Replace 7 with cards.len later and also in loops ennit
         string[,] asd = new string[7, 2]; //split into [card][suit, value]
+        List<int> v = new List<int>();
+        List<string> s = new List<string>();
+
 
         int i = 0;
         foreach(string card in riverCards) {
             string[] split = card.Split('-');
             asd[i,0] = split[0];
             asd[i,1] = split[1];
+            v.Add(Int32.Parse(asd[i,1]));
             i++;
         }
 
-        int highCard = 0;
+        v.Sort();
+        int highCard = v[v.Count-1];
 
-        for(i = 0; i < 5; i++) 
+        int count = 0;
+        
+        for(i = 1; i < v.Count; i++)
         {
-            int val = Int32.Parse(asd[i,1]);
-            if(val == 1){
-                highCard = 14;
+            if(v[i] == v[i-1]){
+                count++;
             }
-            if(val > highCard){
-                highCard = val;
+            else {
+                Debug.Log("Value: " + v[i-1] + " count: " + count);
+                count = 0;
             }
+
+            if(i == v.Count-1){
+                Debug.Log("Value: " + v[i-1] + " count: " + count);
+            }
+
         }
+
+
         Debug.Log("HIGH CARD: " + highCard);
 
         return null;

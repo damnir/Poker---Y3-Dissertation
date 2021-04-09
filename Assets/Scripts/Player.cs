@@ -96,6 +96,18 @@ public class Player : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
+    public NetworkVariableString card1v = new NetworkVariableString(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
+    public NetworkVariableString card2v = new NetworkVariableString(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
     public GameObject foldGo;
     public GameObject card1;
     public GameObject card2;
@@ -127,6 +139,7 @@ public class Player : NetworkBehaviour
             t1.text = "Client ID: " + OwnerClientId;
             t2.text = "Client ID: " + OwnerClientId;
             ownerGo.SetActive(true);
+            betState.Value = BetState.Fold;
         }
 
         GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject);
@@ -141,10 +154,15 @@ public class Player : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {   
+        try {
+            this.transform.position = GameObject.Find(pos.Value).transform.position; 
+            this.transform.SetParent(currentLobby.Value.transform);
+            this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+            //this.transform = GameObject.Find(pos.Value).transform;
+        }catch(NullReferenceException e) { }
+
         if(IsClient) {
-            try {
-                this.transform.position = GameObject.Find(pos.Value).transform.position; 
-            }catch(NullReferenceException e) { }
+
             changeText("Cash", "$" + cash.Value.ToString());
 
             switch (betState.Value) {
@@ -196,6 +214,15 @@ public class Player : NetworkBehaviour
 
             text.GetComponent<TextMeshProUGUI>().text = betGoText.Value;
         }
+
+        if(IsOwner && betState.Value != BetState.Fold && card1v.Value != null)
+        {
+            card1.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
+            card1.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + card1v.Value);
+
+            card2.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
+            card2.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + card2v.Value);
+        }
     }
 
     void changeText(string objectName, string newText)
@@ -215,6 +242,8 @@ public class Player : NetworkBehaviour
         card2.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
         card2.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + c2);
         //currentBet.Value = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
+        card1v.Value = c1;
+        card2v.Value = c2;
 
         folded.Value = false;
         betState.Value = BetState.Wait;
@@ -223,33 +252,8 @@ public class Player : NetworkBehaviour
 
     public void changeLobby(GameObject lobby) 
     {
+        lobby.GetComponent<DataManager>().addPlayerServerRpc(OwnerClientId);
         currentLobby.Value = lobby;
-
-        if (IsClient)
-        {
-            changeLobbyServerRpc(lobby.name);
-        }
-    }
-
-    [ServerRpc]
-    public void changeLobbyServerRpc(string name)
-    {
-        dataManager = currentLobby.Value.GetComponent<DataManager>();
-
-        dataManager.addPlayer(this.gameObject);
-
-        sync(name);
-        changeLobbyClientRpc(name);
-    }
-
-    [ClientRpc]
-    public void changeLobbyClientRpc(string name) { 
-        dataManager = currentLobby.Value.GetComponent<DataManager>();
-        sync(name); }
-
-    private void sync( string name)
-    {
-        GameObject lobby = currentLobby.Value;
         this.transform.SetParent(lobby.transform);
         this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
     }
@@ -258,30 +262,12 @@ public class Player : NetworkBehaviour
     //Refactored
 
     public void sit(string name) {
-        if(IsClient) {
-            GameObject seat = GameObject.Find(name);
-            this.transform.position = seat.transform.position;
-            this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-            sitServerRpc(name);
-        }
-    }
-
-    [ServerRpc]
-    public void sitServerRpc(string name) {
-        GameObject seat = GameObject.Find(name);
-        sitClientRpc(name);
-    }
-
-    [ClientRpc]
-    public void sitClientRpc(string name) {
-        GameObject seat = GameObject.Find(name);
-        this.transform.position = seat.transform.position;
-        this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
         if(IsOwner) {
+            GameObject seat = GameObject.Find(name);
             Position.Value = seat.transform.position;
             currentSeat.Value = seat.GetComponent<Seat>().seatNo;
+            pos.Value = name;
         }
-        pos.Value = name;
     }
 
     ////GAME 
@@ -321,12 +307,8 @@ public class Player : NetworkBehaviour
     }
 
     public void turn(bool turn) {
-        //currentBet.Value = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
-
         isTurn.Value = turn;
-        //betState.Value = BetState.Wait;
     }
 
 
-    
 }
