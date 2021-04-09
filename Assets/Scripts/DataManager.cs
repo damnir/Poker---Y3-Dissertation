@@ -23,13 +23,6 @@ public class DataManager : NetworkBehaviour
 
     public string[] riverCards = new string[5];
 
-    /*
-    public NetworkList<string> deck = new NetworkList<string>(new NetworkVariableSettings
-    {
-        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-        ReadPermission = NetworkVariablePermission.Everyone
-    });*/
-
     public List<string> deck = new List<string>();
 
     public List<GameObject> players = new List<GameObject>();
@@ -59,6 +52,19 @@ public class DataManager : NetworkBehaviour
         Flop2,
         Flop3,
         End
+    }
+
+    public struct Hand
+    {
+        public int rank; //1# royal flush, 2# straight flush, 3# four of a kind, 4# full house, #5 flush, #6 straight, #7 three of a kind, #8 two pair, #9 pair, #10 high card
+        public int strength; //2-14 (2-A)
+    }
+
+    public struct Rank
+    {
+        public List<int> pairs;
+        public List<int> threeof;
+        public int fourof;
     }
 
     Stage currentStage;
@@ -198,7 +204,7 @@ public class DataManager : NetworkBehaviour
                 }
 
                 if( currentStage == Stage.End) {
-                    evaluateHand();
+                    //evaluateHand();
                     endStage();
                     endStageClientRpc(clientRpcParams);
 
@@ -317,7 +323,6 @@ public class DataManager : NetworkBehaviour
     }
 
     public void deal () {
-        //dealCardsClientRpc(clientRpcParams);
         string card1;
         string card2;
         foreach(ulong id in playerOrder)
@@ -327,14 +332,6 @@ public class DataManager : NetworkBehaviour
             GetPlayerNetworkObject(id).GetComponent<Player>().dealCards(card1, card2);
         }
     }
-
-    /*
-    [ClientRpc]
-    public void dealCardsClientRpc(ClientRpcParams clientRpcParams) {
-        string card1 = getRandomCard();
-        string card2 = getRandomCard();
-        GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().dealCards(card1, card2);
-    }*/
 
     public void postFlop(Stage stage)
     {
@@ -382,7 +379,6 @@ public class DataManager : NetworkBehaviour
         foreach(GameObject card in river) {
             card.SetActive(false);
         }
-        //Debug.Log("River Cards Count(CLIENT): " + riverCards.Count);
     }
     
     [ServerRpc(RequireOwnership = false)]
@@ -469,16 +465,60 @@ public class DataManager : NetworkBehaviour
         return card;
     }
 
-    public string evaluateHand() {
+    public void testTwo()
+    {
+        string[] cards = {"Club-01", "Diamond-01", "Diamond-06", "Club-07", "Diamond-02", "Diamond-07", "Heart-04" };
+        List<string> test = new List<string>();
+        foreach(string c in cards)
+        {
+            test.Add(c);
+        }
+        evaluateHand(test);
+    }
 
-        //Replace 7 with cards.len later and also in loops ennit
+    public void testThree()
+    {
+        string[] cards = {"Club-01", "Diamond-01", "Diamond-06", "Club-03", "Diamond-02", "Diamond-07", "Heart-01" };
+        List<string> test = new List<string>();
+        foreach(string c in cards)
+        {
+            test.Add(c);
+        }
+        evaluateHand(test);
+    }
+
+    public void testFour()
+    {
+        string[] cards = {"Club-01", "Diamond-01", "Diamond-06", "Club-01", "Diamond-02", "Diamond-01", "Heart-08" };
+        List<string> test = new List<string>();
+        foreach(string c in cards)
+        {
+            test.Add(c);
+        }
+        evaluateHand(test);
+    }
+
+    public Rank newRank()
+    {
+        Rank rank = new Rank();
+        rank.pairs = new List<int>();
+        rank.threeof = new List<int>();
+        rank.fourof = 0;
+        return rank;
+    }
+
+    public string evaluateHand(List<string> cards) {
+
         string[,] asd = new string[7, 2]; //split into [card][suit, value]
         List<int> v = new List<int>();
         List<string> s = new List<string>();
 
+        List<Hand> h = new List<Hand>();
+
 
         int i = 0;
-        foreach(string card in riverCards) {
+        
+        foreach(string card in cards) {
             string[] split = card.Split('-');
             asd[i,0] = split[0];
             asd[i,1] = split[1];
@@ -488,23 +528,86 @@ public class DataManager : NetworkBehaviour
 
         v.Sort();
         int highCard = v[v.Count-1];
+        Hand hand = new Hand();
+        Rank rank = newRank();
+        
 
         int count = 0;
+        int countS = 0;
         
         for(i = 1; i < v.Count; i++)
         {
             if(v[i] == v[i-1]){
                 count++;
             }
-            else {
-                Debug.Log("Value: " + v[i-1] + " count: " + count);
-                count = 0;
+            if(v[i] != v[i-1] || i == v.Count-1)
+            {
+                if(count != 0)
+                {
+                    switch(count)
+                    {
+                        case 1: //one pair
+                            rank.pairs.Add(v[i-1]);
+                            break;
+                        case 2: //three of a kind
+                            rank.threeof.Add(v[i-1]);
+                            break;
+                        case 3: //four of a kind
+                            rank.fourof = (v[i-1]);
+                            break;
+                            //RETURN - no need to check for anything else other than straight flush and royal flush
+                    }
+                    count = 0;
+                }
             }
+        }
 
-            if(i == v.Count-1){
-                Debug.Log("Value: " + v[i-1] + " count: " + count);
+        //check for full house
+        if(rank.pairs.Count >= 1 && rank.threeof.Count >= 1)
+        {
+            int value = 0;
+            if(rank.pairs.Count > 1)
+            {
+                rank.pairs.Sort((a, b) => b.CompareTo(a));
+                value += rank.pairs[0];
             }
+            if(rank.threeof.Count > 1)
+            {
+                rank.threeof.Sort((a, b) => b.CompareTo(a));
+                value += rank.threeof[0];
+            }
+            if(rank.pairs.Count == 1 && rank.pairs.Count == 1)
+            {
+                value += rank.pairs[0] + rank.threeof[0];
+            }
+            Debug.Log("FULL HOUSE!");
+        }
 
+        //check for 2 pairs
+        if(rank.pairs.Count > 1)
+        {
+            int value2 = 0;
+            if(rank.pairs.Count > 2)
+            {
+                rank.pairs.Sort((a, b) => b.CompareTo(a));
+            }
+            value2 = rank.pairs[0] + rank.pairs[1];
+            Debug.Log("TWO PAIRS!");
+        }
+
+        foreach(int pairs in rank.pairs )
+        {
+            Debug.Log("Pair of: " + pairs);
+        }
+
+        foreach(int threeof in rank.threeof)
+        {
+            Debug.Log("Three of: " + threeof);
+        }
+
+        if(rank.fourof != 0)
+        {
+            Debug.Log("Four of " + rank.fourof);
         }
 
 
