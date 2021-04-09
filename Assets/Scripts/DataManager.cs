@@ -10,7 +10,7 @@ using static System.Action;
 using System;
 using static System.Exception;
 using static MLAPI.Spawning.NetworkSpawnManager;
-
+using System.Linq;
 public class DataManager : NetworkBehaviour
 {
     public GameObject[] river = new GameObject[5];
@@ -498,6 +498,39 @@ public class DataManager : NetworkBehaviour
         evaluateHand(test);
     }
 
+    public void testStraight()
+    {
+        string[] cards = {"Club-05", "Diamond-01", "Diamond-09", "Club-02", "Diamond-04", "Diamond-03", "Heart-03" };
+        List<string> test = new List<string>();
+        foreach(string c in cards)
+        {
+            test.Add(c);
+        }
+        evaluateHand(test);
+    }
+
+    public void testFlush()
+    {
+        string[] cards = {"Club-05", "Diamond-01", "Diamond-09", "Club-02", "Diamond-04", "Diamond-03", "Diamond-03" };
+        List<string> test = new List<string>();
+        foreach(string c in cards)
+        {
+            test.Add(c);
+        }
+        evaluateHand(test);
+    }
+
+    public void testSFlush()
+    {
+        string[] cards = {"Diamond-05", "Diamond-01", "Diamond-09", "Diamond-02", "Diamond-04", "Diamond-03", "Diamond-03" };
+        List<string> test = new List<string>();
+        foreach(string c in cards)
+        {
+            test.Add(c);
+        }
+        evaluateHand(test);
+    }
+
     public Rank newRank()
     {
         Rank rank = new Rank();
@@ -509,38 +542,37 @@ public class DataManager : NetworkBehaviour
 
     public string evaluateHand(List<string> cards) {
 
-        string[,] asd = new string[7, 2]; //split into [card][suit, value]
-        List<int> v = new List<int>();
-        List<string> s = new List<string>();
+        int len = cards.Count;
+        int[] v = new int[len];
+        string[] s = new string[len];
 
-        List<Hand> h = new List<Hand>();
+        for(int i = 0; i < len; i++)
+        {
+            string[] split = cards[i].Split('-');
+            s[i] = split[0];
+            v[i] = Int32.Parse(split[1]);
 
-
-        int i = 0;
-        
-        foreach(string card in cards) {
-            string[] split = card.Split('-');
-            asd[i,0] = split[0];
-            asd[i,1] = split[1];
-            v.Add(Int32.Parse(asd[i,1]));
-            i++;
         }
+        //sOg = s;
+        string[] sOg = (string[])s.Clone(); //for straight and royal flush
+        Array.Sort(sOg);
+        Array.Sort(v, s);
 
-        v.Sort();
-        int highCard = v[v.Count-1];
+        int highCard = v[len-1];
         Hand hand = new Hand();
         Rank rank = newRank();
-        
 
         int count = 0;
         int countS = 0;
+        int countF = 0;
         
-        for(i = 1; i < v.Count; i++)
+        for(int i = 1; i < len; i++)
         {
+            //------ checking for duplicate values
             if(v[i] == v[i-1]){
                 count++;
             }
-            if(v[i] != v[i-1] || i == v.Count-1)
+            if(v[i] != v[i-1] || i == len-1)
             {
                 if(count != 0)
                 {
@@ -560,18 +592,55 @@ public class DataManager : NetworkBehaviour
                     count = 0;
                 }
             }
+            //------- checking for flush
+            if(sOg[i] == sOg[i-1])
+            {
+                countF++;
+                if(countF >= 5)
+                {
+                    Debug.Log("FLUSH!");
+                }
+            }
+            //------- checking for straight 
+            if( (v[i-1]+1) == v[i] )
+            {
+                countS++;
+                if(countS >= 4)
+                {
+                    Debug.Log("STRAIGHT!");
+                    //check for royalflush
+                    if(countF >= 5)
+                    {
+                        string[] royal = new string[5];
+                        Array.Copy(s, i-4, royal, 0, 5);
+
+                        if(royal.All(ss => string.Equals(s[i], ss, StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            Debug.Log("STRAIGHT FLUSH!!");
+                            //add all values together for strength
+                        }
+
+                    }
+                }
+            }
+            else{
+                if(count == 0)
+                {
+                    countS = 0;
+                }
+            }
         }
 
         //check for full house
         if(rank.pairs.Count >= 1 && rank.threeof.Count >= 1)
         {
             int value = 0;
-            if(rank.pairs.Count > 1)
+            if(rank.pairs.Count > 1) //if multiple pairs, pick the highest value
             {
                 rank.pairs.Sort((a, b) => b.CompareTo(a));
                 value += rank.pairs[0];
             }
-            if(rank.threeof.Count > 1)
+            if(rank.threeof.Count > 1)//if multiple pairs, pick the highest value
             {
                 rank.threeof.Sort((a, b) => b.CompareTo(a));
                 value += rank.threeof[0];
