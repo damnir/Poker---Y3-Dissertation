@@ -108,12 +108,17 @@ public class Player : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
+    public ulong lobbyBet;
+
+    
+
     public GameObject foldGo;
     public GameObject card1;
     public GameObject card2;
     public GameObject betGo;
     public GameObject animation;
     public GameObject ownerGo;
+    public GameObject win;
     GameObject text;
 
     public GameObject buttonManager;
@@ -159,6 +164,7 @@ public class Player : NetworkBehaviour
             this.transform.SetParent(currentLobby.Value.transform);
             this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
             //this.transform = GameObject.Find(pos.Value).transform;
+            lobbyBet = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
         }catch(NullReferenceException e) { }
 
         if(IsClient) {
@@ -168,13 +174,14 @@ public class Player : NetworkBehaviour
             switch (betState.Value) {
                 case BetState.Fold: 
                     foldGo.SetActive(true);
-                    betGoText.Value = "<sprite=2>Fold";
+                    betGoText.Value = "<sprite=2>$"+currentBet.Value;
                     betGo.SetActive(true);
                     card1.SetActive(false);
                     card2.SetActive(false);
                     break;
                 case BetState.Call:
                     //betGoText.Value = "<sprite=3>$$$";
+                    
                     if(currentBet.Value < 1)
                     {
                         betGoText.Value = "<sprite=1>Check";
@@ -203,9 +210,10 @@ public class Player : NetworkBehaviour
                 animation.SetActive(true);
                 if (IsOwner)
                 {
-                    buttonManager.GetComponent<ButtonManager>().updateCall(currentLobby.Value.GetComponent<DataManager>().currentBet.Value);
-                    buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().currentBet.Value
-                    +currentLobby.Value.GetComponent<DataManager>().bigBlind, cash.Value);
+                 
+                    buttonManager.GetComponent<ButtonManager>().updateCall(lobbyBet - currentBet.Value);
+                 
+                    buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().bigBlind, cash.Value);
                 }
             }
             else{
@@ -280,34 +288,54 @@ public class Player : NetworkBehaviour
     }
 
     public void check() {
+                isTurn.Value = false;
+
         betState.Value = BetState.Check;
     }
 
     public void call() {
-        currentBet.Value = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
-        cash.Value -= (ulong)currentBet.Value;
-        betGoText.Value = "<sprite=3>"+currentBet.Value;
+        isTurn.Value = false;
         currentLobby.Value.GetComponent<DataManager>().playerCallServerRpc(OwnerClientId, currentBet.Value);
+        currentBet.Value = lobbyBet - currentBet.Value;
+        cash.Value -= currentBet.Value;
+        betGoText.Value = "<sprite=3>"+lobbyBet;
         betState.Value = BetState.Call;
+
+//++++++++++++++++++++++++
     }
 
     public void raise(ulong bet) {
-        cash.Value -= bet;
-        currentBet.Value = bet;
+        isTurn.Value = false;
+
         currentLobby.Value.GetComponent<DataManager>().playerRaiseServerRpc(OwnerClientId, bet);
-        betGoText.Value = "<sprite=0>$"+bet;
+        cash.Value -= bet;
+        currentBet.Value = (lobbyBet + bet);
+        betGoText.Value = "<sprite=0>$"+ (lobbyBet + bet);
         betState.Value = BetState.Raise;
     }
 
     public void resetBetState() {
+        currentBet.Value = 0;
+
         if(betState.Value != BetState.Fold)
         {
             betState.Value = BetState.Wait;
         }
+        
+    }
+
+    public void callBlind(ulong bet)
+    {
+        currentBet.Value = bet;
+        cash.Value -= (ulong)currentBet.Value;
+        betGoText.Value = "<sprite=3>$"+currentBet.Value;
+        currentLobby.Value.GetComponent<DataManager>().playerCall(OwnerClientId, bet);
+        betState.Value = BetState.Call;
     }
 
     public void turn(bool turn) {
         isTurn.Value = turn;
+
     }
 
 

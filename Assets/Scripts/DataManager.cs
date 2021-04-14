@@ -58,13 +58,24 @@ public class DataManager : NetworkBehaviour
     {
         public int rank; //1# royal flush, 2# straight flush, 3# four of a kind, 4# full house, #5 flush, #6 straight, #7 three of a kind, #8 two pair, #9 pair, #10 high card
         public int strength; //2-14 (2-A)
+        public ulong pId;
     }
+
+    public List<Hand> playerHands = new List<Hand>();
 
     public struct Rank
     {
         public List<int> pairs;
         public List<int> threeof;
+        public int singlePairInt;
+        public int pairsV;
+        public int threeofV;
         public int fourof;
+        public int straight;
+        public int flush;
+        public int straightflush;
+        public int fullhouse;
+        public int highCard;
     }
 
     Stage currentStage;
@@ -128,6 +139,8 @@ public class DataManager : NetworkBehaviour
                 }
             } 
 
+
+
             if(gameActive && NetworkManager.Singleton.NetworkTime > time) {
                 updateClientParams();
 
@@ -163,6 +176,8 @@ public class DataManager : NetworkBehaviour
                 }
 
                 if(currentStage == Stage.Deal) {
+                    endStageClientRpc(clientRpcParams);
+
                     currentBet.Value = bigBlind;
                     orderSeats();
                     orderPlayers(false);
@@ -172,6 +187,10 @@ public class DataManager : NetworkBehaviour
                     if(dealer > 6) {
                         dealer = 0;
                     }
+                    callBlindPlayer(smallBlind);
+
+                    callBlindPlayer(bigBlind);
+
 
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
@@ -206,13 +225,13 @@ public class DataManager : NetworkBehaviour
                 if( currentStage == Stage.End) {
                     //evaluateHand();
                     endStage();
-                    endStageClientRpc(clientRpcParams);
+                    //endStageClientRpc(clientRpcParams);
 
                     prevStage = currentStage;
                     currentStage = Stage.Deal;
                 }
 
-                time += 8;
+                time += 600;
             }
         }
     }
@@ -277,13 +296,14 @@ public class DataManager : NetworkBehaviour
             } 
             playerOrder.Reverse();
 
-            for(int i = 0; i < dealer-folded; i++){
+            for(int i = 0; i < dealer-folded-1; i++){
                 ulong temp = playerOrder[0];
                 playerOrder.Add(temp);
                 playerOrder.RemoveAt(0);
             }
         }
-        else {
+        else
+        {
             foreach (ulong id in seatOrder)
             {
                 if(id != 0) {
@@ -335,6 +355,8 @@ public class DataManager : NetworkBehaviour
 
     public void postFlop(Stage stage)
     {
+        currentBet.Value = 0;
+
         switch(stage){
             case Stage.Flop1:
                 for (int i = 0; i < 3; i++)
@@ -352,7 +374,6 @@ public class DataManager : NetworkBehaviour
                 postFlopClientRpc(riverCards, 5, clientRpcParams);
                 break;
         }
-        currentBet.Value = 0;
     }
 
     [ClientRpc]
@@ -372,6 +393,7 @@ public class DataManager : NetworkBehaviour
     public void endStage() {
         generateDeck();
         shuffleDeck();
+        playerEndClientRpc(riverCards, clientRpcParams);
     }
 
     [ClientRpc]
@@ -379,6 +401,34 @@ public class DataManager : NetworkBehaviour
         foreach(GameObject card in river) {
             card.SetActive(false);
         }
+    }
+
+    [ClientRpc]
+    public void playerEndClientRpc(string[] riverCards, ClientRpcParams clientRpcParams)
+    {
+        List<string> cards = new List<string>();
+        cards.Add(GetLocalPlayerObject().GetComponent<Player>().card1v.Value);
+        cards.Add(GetLocalPlayerObject().GetComponent<Player>().card2v.Value);
+        foreach(string c in riverCards)
+        {
+            cards.Add(c);
+        }
+        Rank rank = evaluateHand(cards);
+        Hand hand = evaluateRank(rank);
+
+        addHandServerRpc(hand.pId, hand.rank, hand.strength);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void addHandServerRpc(ulong id, int rank, int strength)
+    {
+        Hand newHand = new Hand();
+        newHand.pId = id;
+        newHand.rank = rank;
+        newHand.strength = strength;
+        playerHands.Add(newHand);
+
+        Debug.Log("AddHandServerRpc- PlayerID: "+id+" rank: "+rank+" strength: " + strength);
     }
     
     [ServerRpc(RequireOwnership = false)]
@@ -392,7 +442,12 @@ public class DataManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void playerCallServerRpc(ulong senderID, ulong bet) {
         mainPot.Value += bet;
-        time = NetworkManager.Singleton.NetworkTime; //force loop update
+        time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
+    }
+
+    public void playerCall(ulong senderID, ulong bet){
+        mainPot.Value += bet;
+        time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -408,7 +463,14 @@ public class DataManager : NetworkBehaviour
         } 
         playerOrderRe.Clear();
 
-        time = NetworkManager.Singleton.NetworkTime; //force loop update
+        time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
+    }
+
+    public void callBlindPlayer(ulong blind)
+    {
+        GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().callBlind(blind);
+        playerOrder.Add(playerOrder[0]);
+        playerOrder.RemoveAt(0);
     }
 
     [ClientRpc]
@@ -500,7 +562,7 @@ public class DataManager : NetworkBehaviour
 
     public void testStraight()
     {
-        string[] cards = {"Club-05", "Diamond-01", "Diamond-09", "Club-02", "Diamond-04", "Diamond-03", "Heart-03" };
+        string[] cards = {"Club-05", "Diamond-01", "Diamond-05", "Club-02", "Diamond-04", "Diamond-03", "Heart-03" };
         List<string> test = new List<string>();
         foreach(string c in cards)
         {
@@ -511,7 +573,7 @@ public class DataManager : NetworkBehaviour
 
     public void testFlush()
     {
-        string[] cards = {"Club-05", "Diamond-01", "Diamond-09", "Club-02", "Diamond-04", "Diamond-03", "Diamond-03" };
+        string[] cards = {"Heart-10", "Diamond-08", "Heart-03", "Club-02", "Heart-05", "Heart-06", "Heart-01" };
         List<string> test = new List<string>();
         foreach(string c in cards)
         {
@@ -540,7 +602,7 @@ public class DataManager : NetworkBehaviour
         return rank;
     }
 
-    public string evaluateHand(List<string> cards) {
+    public Rank evaluateHand(List<string> cards) {
 
         int len = cards.Count;
         int[] v = new int[len];
@@ -550,22 +612,36 @@ public class DataManager : NetworkBehaviour
         {
             string[] split = cards[i].Split('-');
             s[i] = split[0];
-            v[i] = Int32.Parse(split[1]);
+            int val = Int32.Parse(split[1]);
+            if(val == 1)
+            {
+                v[i] = 14;
+            }
+            else
+            {
+                v[i] = val;
+            }
 
         }
-        //sOg = s;
+
         string[] sOg = (string[])s.Clone(); //for straight and royal flush
         Array.Sort(sOg);
         Array.Sort(v, s);
 
         int highCard = v[len-1];
+
         Hand hand = new Hand();
         Rank rank = newRank();
 
-        int count = 0;
-        int countS = 0;
-        int countF = 0;
-        
+        rank.highCard = highCard;
+
+        int count = 0; int countS = 0; int countF = 0;
+        //pairs         suits           flush
+        if(v[0] == 2 && highCard == 14)
+        {
+            countS++; //for straight check...
+        }
+
         for(int i = 1; i < len; i++)
         {
             //------ checking for duplicate values
@@ -586,6 +662,7 @@ public class DataManager : NetworkBehaviour
                             break;
                         case 3: //four of a kind
                             rank.fourof = (v[i-1]);
+                            Debug.Log("FOUR: " + v[i-1]);
                             break;
                             //RETURN - no need to check for anything else other than straight flush and royal flush
                     }
@@ -593,13 +670,17 @@ public class DataManager : NetworkBehaviour
                 }
             }
             //------- checking for flush
-            if(sOg[i] == sOg[i-1])
+            if(sOg[i] == sOg[i-1]) //FLUSH FLAW
             {
                 countF++;
-                if(countF >= 5)
+                if(countF >= 4)
                 {
                     Debug.Log("FLUSH!");
+                    rank.flush = countF;
                 }
+            }
+            else{
+                countF = 0;
             }
             //------- checking for straight 
             if( (v[i-1]+1) == v[i] )
@@ -608,6 +689,7 @@ public class DataManager : NetworkBehaviour
                 if(countS >= 4)
                 {
                     Debug.Log("STRAIGHT!");
+                    rank.straight = v[i]*5-10;;
                     //check for royalflush
                     if(countF >= 5)
                     {
@@ -618,6 +700,8 @@ public class DataManager : NetworkBehaviour
                         {
                             Debug.Log("STRAIGHT FLUSH!!");
                             //add all values together for strength
+                            rank.straightflush = v[i]*5-10;
+                            //45678
                         }
 
                     }
@@ -645,11 +729,31 @@ public class DataManager : NetworkBehaviour
                 rank.threeof.Sort((a, b) => b.CompareTo(a));
                 value += rank.threeof[0];
             }
-            if(rank.pairs.Count == 1 && rank.pairs.Count == 1)
+            if(rank.pairs.Count == 1 && rank.threeof.Count == 1)
             {
                 value += rank.pairs[0] + rank.threeof[0];
             }
+            rank.fullhouse = value;
+            
             Debug.Log("FULL HOUSE!");
+        }
+
+        if(rank.pairs.Count > 1) //if multiple pairs, pick the highest value
+        {
+            rank.pairs.Sort((a, b) => b.CompareTo(a));
+        }
+        else if(rank.pairs.Count == 1)
+        {
+            rank.singlePairInt = rank.pairs[0];
+        }
+
+        if(rank.threeof.Count > 1)//if multiple pairs, pick the highest value
+        {
+            rank.threeof.Sort((a, b) => b.CompareTo(a));
+        }
+        else if(rank.threeof.Count == 1)
+        {
+            rank.threeofV = rank.threeof[0];
         }
 
         //check for 2 pairs
@@ -661,28 +765,70 @@ public class DataManager : NetworkBehaviour
                 rank.pairs.Sort((a, b) => b.CompareTo(a));
             }
             value2 = rank.pairs[0] + rank.pairs[1];
+            rank.pairsV = value2;
             Debug.Log("TWO PAIRS!");
         }
-
-        foreach(int pairs in rank.pairs )
+        else if(rank.pairs.Count == 1)
         {
-            Debug.Log("Pair of: " + pairs);
+            rank.singlePairInt = rank.pairs[0];
         }
 
-        foreach(int threeof in rank.threeof)
+        return rank;
+    }
+
+//1# royal flush, 2# straight flush, 3# four of a kind, 4# full house, #5 flush, #6 straight, #7 three of a kind, #8 two pair, #9 pair, #10 high card
+    public Hand evaluateRank(Rank rank)
+    {
+        Hand hand = new Hand();
+        if(rank.straightflush != 0)
         {
-            Debug.Log("Three of: " + threeof);
+            hand.rank = 2;
+            hand.strength = rank.straightflush;
+        }
+        else if(rank.fourof != 0)
+        {
+            hand.rank = 3;
+            hand.strength = rank.fourof;
+        }
+        else if(rank.fullhouse != 0)
+        {
+            hand.rank = 4;
+            hand.strength = rank.fullhouse;
+        }
+        else if(rank.flush != 0)
+        {
+            hand.rank = 5;
+            hand.strength = rank.flush;
+        }
+        else if(rank.straight != 0)
+        {
+            hand.rank = 6;
+            hand.strength = rank.straight;
+        }
+        else if(rank.threeofV != 0)
+        {
+            hand.rank = 7;
+            hand.strength = rank.threeofV;
+        }
+        else if(rank.pairsV != 0)
+        {
+            hand.rank = 8;
+            hand.strength = rank.pairsV;
+        }
+        else if(rank.singlePairInt != 0)
+        {
+            hand.rank = 9;
+            hand.strength = rank.singlePairInt;
+        }
+        else
+        {
+            hand.rank = 10;
+            hand.strength = rank.highCard;
         }
 
-        if(rank.fourof != 0)
-        {
-            Debug.Log("Four of " + rank.fourof);
-        }
+        hand.pId = NetworkManager.Singleton.LocalClientId;
+        return hand;
 
-
-        Debug.Log("HIGH CARD: " + highCard);
-
-        return null;
     }
 
 }
