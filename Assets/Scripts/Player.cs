@@ -20,7 +20,8 @@ public class Player : NetworkBehaviour
         Fold,
         Check,
         Raise,
-        Call
+        Call,
+        Win
     }
 
     enum GameState
@@ -171,13 +172,14 @@ public class Player : NetworkBehaviour
 
             changeText("Cash", "$" + cash.Value.ToString());
 
-            switch (betState.Value) {
+            switch (betState.Value) {  //pls make this less messy it do be really ugluyy
                 case BetState.Fold: 
                     foldGo.SetActive(true);
                     betGoText.Value = "<sprite=2>$"+currentBet.Value;
                     betGo.SetActive(true);
                     card1.SetActive(false);
                     card2.SetActive(false);
+                    win.SetActive(false);
                     break;
                 case BetState.Call:
                     //betGoText.Value = "<sprite=3>$$$";
@@ -190,6 +192,7 @@ public class Player : NetworkBehaviour
                     foldGo.SetActive(false);
                     card1.SetActive(true);
                     card2.SetActive(true);  
+                    win.SetActive(false);
                     break;
                 case BetState.Raise:
                     //betGoText.Value = "<sprite=0>$$$";
@@ -197,12 +200,18 @@ public class Player : NetworkBehaviour
                     foldGo.SetActive(false);
                     card1.SetActive(true);
                     card2.SetActive(true);
+                    win.SetActive(false);
                     break;
                 case BetState.Wait:
                     betGo.SetActive(false);
                     foldGo.SetActive(false);
                     card1.SetActive(true);
                     card2.SetActive(true);
+                    win.SetActive(false);
+                    break;
+                case BetState.Win:
+                    win.SetActive(true);
+                    betGo.SetActive(true);
                     break;
             }
             
@@ -212,8 +221,15 @@ public class Player : NetworkBehaviour
                 {
                  
                     buttonManager.GetComponent<ButtonManager>().updateCall(lobbyBet - currentBet.Value);
-                 
-                    buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().bigBlind, cash.Value);
+                    if(currentLobby.Value.GetComponent<DataManager>().previousBet.Value == 0)
+                    {
+                        buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().bigBlind, (lobbyBet - currentBet.Value) + currentLobby.Value.GetComponent<DataManager>().mainPot.Value);
+                    }
+                    else
+                    {
+                        buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().previousBet.Value, (lobbyBet - currentBet.Value) + currentLobby.Value.GetComponent<DataManager>().mainPot.Value);
+
+                    }
                 }
             }
             else{
@@ -255,7 +271,6 @@ public class Player : NetworkBehaviour
 
         folded.Value = false;
         betState.Value = BetState.Wait;
-
     }
 
     public void changeLobby(GameObject lobby) 
@@ -335,6 +350,13 @@ public class Player : NetworkBehaviour
 
     public void turn(bool turn) {
         isTurn.Value = turn;
+    }
+
+    public void winner(ulong wcash)
+    {
+        betGoText.Value = "<sprite=0>+$"+ wcash;
+        cash.Value += wcash;
+        betState.Value = BetState.Win;
     }
 
 

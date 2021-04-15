@@ -11,6 +11,7 @@ using System;
 using static System.Exception;
 using static MLAPI.Spawning.NetworkSpawnManager;
 using System.Linq;
+
 public class DataManager : NetworkBehaviour
 {
     public GameObject[] river = new GameObject[5];
@@ -87,6 +88,11 @@ public class DataManager : NetworkBehaviour
     public ulong sidePot;
 
     public NetworkVariable<ulong> currentBet = new NetworkVariable<ulong>(new NetworkVariableSettings
+    {
+        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        ReadPermission = NetworkVariablePermission.Everyone
+    });
+    public NetworkVariable<ulong> previousBet = new NetworkVariable<ulong>(new NetworkVariableSettings
     {
         WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
         ReadPermission = NetworkVariablePermission.Everyone
@@ -175,7 +181,10 @@ public class DataManager : NetworkBehaviour
                 }
 
                 if(currentStage == Stage.Deal) {
+                    previousBet.Value = 0;
                     endStageClientRpc(clientRpcParams);
+                    mainPot.Value = 0;
+                    updatePotClientRpc(clientRpcParams);
 
                     currentBet.Value = bigBlind;
                     orderSeats();
@@ -186,11 +195,9 @@ public class DataManager : NetworkBehaviour
                     if(dealer > 6) {
                         dealer = 0;
                     }
+                    
                     callBlindPlayer(smallBlind);
-
                     callBlindPlayer(bigBlind);
-
-
                     prevStage = currentStage;
                     currentStage = Stage.Wait;
                 }
@@ -223,11 +230,6 @@ public class DataManager : NetworkBehaviour
 
                 if(currentStage == Stage.Showdown)
                 {
-                    /*
-                    foreach(Hand hand in playerHands)
-                    {
-                        Debug.Log("AddHandServerRpc- PlayerID: "+hand.pId+" rank: "+hand.rank+" strength: " + hand.strength);
-                    }*/
                     determineWinner();
                     playerHands.Clear();
 
@@ -236,13 +238,15 @@ public class DataManager : NetworkBehaviour
                 }
 
                 if( currentStage == Stage.End) {
+                    resetBetStateClientRpc(clientRpcParams);
+                    updatePotClientRpc(clientRpcParams);
                     endStage();
                     time -=(float)5.5;
                     prevStage = currentStage;
                     currentStage = Stage.Showdown;
                 }
 
-                time += 850;
+                time += 7;
             }
         }
     }
@@ -367,6 +371,7 @@ public class DataManager : NetworkBehaviour
     public void postFlop(Stage stage)
     {
         currentBet.Value = 0;
+        previousBet.Value = 0;
 
         switch(stage){
             case Stage.Flop1:
@@ -448,8 +453,6 @@ public class DataManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void playerFoldServerRpc(ulong senderId) {
         time = NetworkManager.Singleton.NetworkTime; //force loop update
-        //playerOrder.Remove(senderId);
-        //playerOrderRe.Remove(senderId);
         Debug.Log("player fold called");
     }
 
@@ -468,6 +471,7 @@ public class DataManager : NetworkBehaviour
     public void playerRaiseServerRpc(ulong senderID, ulong call, ulong bet) {
         mainPot.Value += call;
         currentBet.Value += bet;
+        previousBet.Value = bet;
 
         foreach(ulong id in playerOrderRe) {
             if(!GetPlayerNetworkObject(id).GetComponent<Player>().folded.Value)
@@ -541,72 +545,6 @@ public class DataManager : NetworkBehaviour
         return card;
     }
 
-    public void testTwo()
-    {
-        string[] cards = {"Club-01", "Diamond-01", "Diamond-06", "Club-07", "Diamond-02", "Diamond-07", "Heart-04" };
-        List<string> test = new List<string>();
-        foreach(string c in cards)
-        {
-            test.Add(c);
-        }
-        evaluateHand(test);
-    }
-
-    public void testThree()
-    {
-        string[] cards = {"Club-01", "Diamond-01", "Diamond-06", "Club-03", "Diamond-02", "Diamond-07", "Heart-01" };
-        List<string> test = new List<string>();
-        foreach(string c in cards)
-        {
-            test.Add(c);
-        }
-        evaluateHand(test);
-    }
-
-    public void testFour()
-    {
-        string[] cards = {"Club-01", "Diamond-01", "Diamond-06", "Club-01", "Diamond-02", "Diamond-01", "Heart-08" };
-        List<string> test = new List<string>();
-        foreach(string c in cards)
-        {
-            test.Add(c);
-        }
-        evaluateHand(test);
-    }
-
-    public void testStraight()
-    {
-        string[] cards = {"Club-05", "Diamond-01", "Diamond-05", "Club-02", "Diamond-04", "Diamond-03", "Heart-03" };
-        List<string> test = new List<string>();
-        foreach(string c in cards)
-        {
-            test.Add(c);
-        }
-        evaluateHand(test);
-    }
-
-    public void testFlush()
-    {
-        string[] cards = {"Heart-10", "Diamond-08", "Heart-03", "Club-02", "Heart-05", "Heart-06", "Heart-01" };
-        List<string> test = new List<string>();
-        foreach(string c in cards)
-        {
-            test.Add(c);
-        }
-        evaluateHand(test);
-    }
-
-    public void testSFlush()
-    {
-        string[] cards = {"Diamond-05", "Diamond-01", "Diamond-09", "Diamond-02", "Diamond-04", "Diamond-03", "Diamond-03" };
-        List<string> test = new List<string>();
-        foreach(string c in cards)
-        {
-            test.Add(c);
-        }
-        evaluateHand(test);
-    }
-
     public Rank newRank()
     {
         Rank rank = new Rank();
@@ -638,15 +576,21 @@ public class DataManager : NetworkBehaviour
 
         }
 
+        int highCard;
+        if(v[0] > v[1])
+        {
+            highCard = v[0];
+        }
+        else{
+            highCard = v[1];
+        }
+
         string[] sOg = (string[])s.Clone(); //for straight and royal flush
         Array.Sort(sOg);
         Array.Sort(v, s);
 
-        int highCard = v[len-1];
-
         Hand hand = new Hand();
         Rank rank = newRank();
-
         rank.highCard = highCard;
 
         int count = 0; int countS = 0; int countF = 0;
@@ -875,7 +819,27 @@ public class DataManager : NetworkBehaviour
             Debug.Log("WINNER- ID: " + hand.pId + " Rank: " + hand.rank + " Strength: " + hand.strength);
         }
 
+        announceWinner(winners);
+    }
 
+    public void announceWinner(List<Hand> winners)
+    {
+        
+        int count = winners.Count;
+        ulong win;
+        if (count > 1)
+        {
+            win = mainPot.Value/(ulong)count;
+        }
+        else
+        {
+            win = mainPot.Value;
+        }
+
+        foreach(Hand hand in winners)
+        {
+            GetPlayerNetworkObject(hand.pId).GetComponent<Player>().winner(win);
+        }
     }
 
 }
