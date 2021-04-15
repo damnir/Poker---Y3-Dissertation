@@ -219,16 +219,16 @@ public class Player : NetworkBehaviour
                 animation.SetActive(true);
                 if (IsOwner)
                 {
-                 
                     buttonManager.GetComponent<ButtonManager>().updateCall(lobbyBet - currentBet.Value);
                     if(currentLobby.Value.GetComponent<DataManager>().previousBet.Value == 0)
                     {
-                        buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().bigBlind, (lobbyBet - currentBet.Value) + currentLobby.Value.GetComponent<DataManager>().mainPot.Value);
+                        buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().bigBlind,
+                        (lobbyBet - currentBet.Value) + currentLobby.Value.GetComponent<DataManager>().mainPot.Value);
                     }
                     else
                     {
-                        buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().previousBet.Value, (lobbyBet - currentBet.Value) + currentLobby.Value.GetComponent<DataManager>().mainPot.Value);
-
+                        buttonManager.GetComponent<ButtonManager>().updateRaise(currentLobby.Value.GetComponent<DataManager>().previousBet.Value,
+                        (lobbyBet - currentBet.Value) + currentLobby.Value.GetComponent<DataManager>().mainPot.Value);
                     }
                 }
             }
