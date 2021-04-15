@@ -451,8 +451,8 @@ public class DataManager : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void playerRaiseServerRpc(ulong senderID, ulong bet) {
-        mainPot.Value += bet;
+    public void playerRaiseServerRpc(ulong senderID, ulong call, ulong bet) {
+        mainPot.Value += call;
         currentBet.Value += bet;
 
         foreach(ulong id in playerOrderRe) {

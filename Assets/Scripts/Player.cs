@@ -295,10 +295,21 @@ public class Player : NetworkBehaviour
 
     public void call() {
         isTurn.Value = false;
-        currentLobby.Value.GetComponent<DataManager>().playerCallServerRpc(OwnerClientId, currentBet.Value);
-        currentBet.Value = lobbyBet - currentBet.Value;
-        cash.Value -= currentBet.Value;
-        betGoText.Value = "<sprite=3>"+lobbyBet;
+        //if(currentBet.Value < lobbyBet)
+       // {
+
+        currentLobby.Value.GetComponent<DataManager>().playerCallServerRpc(OwnerClientId, lobbyBet - currentBet.Value);
+        cash.Value -= lobbyBet - currentBet.Value;
+        currentBet.Value = lobbyBet;
+
+        
+        //}
+        //else{
+         //   currentLobby.Value.GetComponent<DataManager>().playerCallServerRpc(OwnerClientId, lobbyBet-currentBet.Value);
+
+        //}
+
+        betGoText.Value = "<sprite=3>"+(currentBet.Value);
         betState.Value = BetState.Call;
 
 //++++++++++++++++++++++++
@@ -307,9 +318,10 @@ public class Player : NetworkBehaviour
     public void raise(ulong bet) {
         isTurn.Value = false;
 
-        currentLobby.Value.GetComponent<DataManager>().playerRaiseServerRpc(OwnerClientId, bet);
-        cash.Value -= bet;
-        currentBet.Value = (lobbyBet + bet);
+        currentLobby.Value.GetComponent<DataManager>().playerRaiseServerRpc(OwnerClientId, lobbyBet + bet - currentBet.Value, bet);
+        cash.Value -= lobbyBet + bet - currentBet.Value;
+        currentBet.Value = lobbyBet + bet;
+
         betGoText.Value = "<sprite=0>$"+ (lobbyBet + bet);
         betState.Value = BetState.Raise;
     }
@@ -327,7 +339,7 @@ public class Player : NetworkBehaviour
     public void callBlind(ulong bet)
     {
         currentBet.Value = bet;
-        cash.Value -= (ulong)currentBet.Value;
+        cash.Value -= bet;
         betGoText.Value = "<sprite=3>$"+currentBet.Value;
         currentLobby.Value.GetComponent<DataManager>().playerCall(OwnerClientId, bet);
         betState.Value = BetState.Call;
