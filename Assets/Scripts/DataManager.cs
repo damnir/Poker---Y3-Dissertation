@@ -51,7 +51,8 @@ public class DataManager : NetworkBehaviour
         Flop1,
         Flop2,
         Flop3,
-        End
+        End,
+        Showdown
     }
 
     public struct Hand
@@ -139,8 +140,6 @@ public class DataManager : NetworkBehaviour
                 }
             } 
 
-
-
             if(gameActive && NetworkManager.Singleton.NetworkTime > time) {
                 updateClientParams();
 
@@ -222,16 +221,28 @@ public class DataManager : NetworkBehaviour
                     currentStage = Stage.WaitEnd;                  
                 }
 
-                if( currentStage == Stage.End) {
-                    //evaluateHand();
-                    endStage();
-                    //endStageClientRpc(clientRpcParams);
+                if(currentStage == Stage.Showdown)
+                {
+                    /*
+                    foreach(Hand hand in playerHands)
+                    {
+                        Debug.Log("AddHandServerRpc- PlayerID: "+hand.pId+" rank: "+hand.rank+" strength: " + hand.strength);
+                    }*/
+                    determineWinner();
+                    playerHands.Clear();
 
                     prevStage = currentStage;
-                    currentStage = Stage.Deal;
+                    currentStage = Stage.Deal; 
                 }
 
-                time += 600;
+                if( currentStage == Stage.End) {
+                    endStage();
+                    time -=(float)5.5;
+                    prevStage = currentStage;
+                    currentStage = Stage.Showdown;
+                }
+
+                time += 850;
             }
         }
     }
@@ -406,6 +417,10 @@ public class DataManager : NetworkBehaviour
     [ClientRpc]
     public void playerEndClientRpc(string[] riverCards, ClientRpcParams clientRpcParams)
     {
+        if(GetLocalPlayerObject().GetComponent<Player>().folded.Value == true)
+        {
+            return;
+        }
         List<string> cards = new List<string>();
         cards.Add(GetLocalPlayerObject().GetComponent<Player>().card1v.Value);
         cards.Add(GetLocalPlayerObject().GetComponent<Player>().card2v.Value);
@@ -428,7 +443,6 @@ public class DataManager : NetworkBehaviour
         newHand.strength = strength;
         playerHands.Add(newHand);
 
-        Debug.Log("AddHandServerRpc- PlayerID: "+id+" rank: "+rank+" strength: " + strength);
     }
     
     [ServerRpc(RequireOwnership = false)]
@@ -828,6 +842,39 @@ public class DataManager : NetworkBehaviour
 
         hand.pId = NetworkManager.Singleton.LocalClientId;
         return hand;
+
+    }
+
+    public void determineWinner()
+    {
+        playerHands.Sort((x,y) => x.rank.CompareTo(y.rank));
+        List<Hand> winners = new List<Hand>();
+
+        winners.Add(playerHands[0]);
+
+        for (int i = 1; i < playerHands.Count; i++)
+        {
+            //Debug.Log("ID: " + playerHands[i].pId + " Rank: " + playerHands[i].rank + " Strength: " + playerHands[i].strength);
+            if(playerHands[i].strength == playerHands[i-1].strength && playerHands[i].rank == playerHands[i-1].rank)
+            {
+                winners.Add(playerHands[i]);
+            }
+            else if(playerHands[i].strength > playerHands[i-1].strength && playerHands[i].rank == playerHands[i-1].rank)
+            {
+                winners.Clear();
+                winners.Add(playerHands[i]);
+            }
+            else if(playerHands[i].rank != playerHands[i-1].rank)
+            {
+                break;
+            }
+        }
+
+        foreach (Hand hand in winners)
+        {
+            Debug.Log("WINNER- ID: " + hand.pId + " Rank: " + hand.rank + " Strength: " + hand.strength);
+        }
+
 
     }
 

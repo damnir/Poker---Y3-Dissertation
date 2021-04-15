@@ -295,24 +295,13 @@ public class Player : NetworkBehaviour
 
     public void call() {
         isTurn.Value = false;
-        //if(currentBet.Value < lobbyBet)
-       // {
 
         currentLobby.Value.GetComponent<DataManager>().playerCallServerRpc(OwnerClientId, lobbyBet - currentBet.Value);
         cash.Value -= lobbyBet - currentBet.Value;
         currentBet.Value = lobbyBet;
 
-        
-        //}
-        //else{
-         //   currentLobby.Value.GetComponent<DataManager>().playerCallServerRpc(OwnerClientId, lobbyBet-currentBet.Value);
-
-        //}
-
         betGoText.Value = "<sprite=3>"+(currentBet.Value);
         betState.Value = BetState.Call;
-
-//++++++++++++++++++++++++
     }
 
     public void raise(ulong bet) {
@@ -332,8 +321,7 @@ public class Player : NetworkBehaviour
         if(betState.Value != BetState.Fold)
         {
             betState.Value = BetState.Wait;
-        }
-        
+        }  
     }
 
     public void callBlind(ulong bet)
@@ -347,7 +335,6 @@ public class Player : NetworkBehaviour
 
     public void turn(bool turn) {
         isTurn.Value = turn;
-
     }
 
 

@@ -8135,6 +8135,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7044764699013121185, guid: 4be0681f0c8d0834cbfb64dd9fcce031,
         type: 3}
+      propertyPath: m_Value
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7044764699013121185, guid: 4be0681f0c8d0834cbfb64dd9fcce031,
+        type: 3}
+      propertyPath: m_WholeNumbers
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7044764699013121185, guid: 4be0681f0c8d0834cbfb64dd9fcce031,
+        type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
