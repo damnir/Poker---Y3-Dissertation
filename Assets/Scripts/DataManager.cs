@@ -147,30 +147,12 @@ public class DataManager : NetworkBehaviour
                 }
             } 
 
-
             if(gameActive && NetworkManager.Singleton.NetworkTime > time) {
                 updateClientParams();
 
                 if(currentStage == Stage.WaitEnd) 
                 {
-                    if(actionTaken)
-                    {
-                        endTurnClientRpc(playerOrder[0], clientRpcParams);
-                        playerOrderRe.Add(playerOrder[0]);//////////////////
-                        playerOrder.RemoveAt(0);
-                    }
-                    else
-                    {
-                        if(GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().currentBet.Value == currentBet.Value)        
-                        {
-                            forceCallClientRpc(playerOrder[0]);
-                        }
-                        else
-                        {
-                            forceFoldClientRpc(playerOrder[0]);
-                        }
-                    }
-                    actionTaken = false;
+                    endTurn();
 
                     if(playerOrder.Count < 1)
                     {
@@ -193,69 +175,48 @@ public class DataManager : NetworkBehaviour
                         currentStage = Stage.Wait;
                     }
                 }
+               
+                updateClientParams();
+                
+                switch (currentStage)
+                {
+                    case Stage.Deal:
+                        deal();
 
-                if(gameActive && NetworkManager.Singleton.NetworkTime > time) {
-                    
-                    updateClientParams();
-                    
-                    switch (currentStage)
-                    {
-                        case Stage.Deal:
-                            previousBet.Value = 0;
-                            endStageClientRpc(clientRpcParams);
-                            mainPot.Value = 0;
-                            updatePotClientRpc(clientRpcParams);
+                        prevStage = currentStage;
+                        currentStage = Stage.Wait;
+                        break;
 
-                            currentBet.Value = bigBlind;
-                            orderSeats();
-                            orderPlayers(false);
-                            deal();
+                    case Stage.End:
+                        endStage();
 
-                            dealer++;
-                            if(dealer > 6) {
-                                dealer = 0;
-                            }
-                            
-                            callBlindPlayer(smallBlind);
-                            callBlindPlayer(bigBlind);
-                            prevStage = currentStage;
-                            currentStage = Stage.Wait;
-                            break;
-                        case Stage.End:
-                            resetBetStateClientRpc(clientRpcParams);
-                            updatePotClientRpc(clientRpcParams);
-                            endStage();
-                            time -=(float)5.5;
-                            prevStage = currentStage;
-                            currentStage = Stage.Showdown;
-                            break;
-                        
-                        case Stage.Showdown:
-                            determineWinner();
-                            playerHands.Clear();
+                        prevStage = currentStage;
+                        currentStage = Stage.Showdown;
+                        break;
+                    
+                    case Stage.Showdown:
+                        determineWinner();
+                        playerHands.Clear();
+                        prevStage = currentStage;
+                        currentStage = Stage.Deal; 
+                        break;
 
-                            prevStage = currentStage;
-                            currentStage = Stage.Deal; 
-                            break;
-                        // CurrentStage is one of Flop1 Flop2 Flop3
-                        case Stage.Flop1:
-                        case Stage.Flop2:
-                        case Stage.Flop3:
-                            postFlop(currentStage);
-                            orderPlayers(true);
-                            prevStage = currentStage;
-                            currentStage = Stage.Wait;
-                            break;
-                    }
-                    
-                    if (currentStage == Stage.Wait)
-                    {
-                        nextTurnClientRpc(playerOrder[0]);
-                        currentStage = Stage.WaitEnd; 
-                    }
-                    
-                    time += 7;
+                    case Stage.Flop1: case Stage.Flop2: case Stage.Flop3:
+                        postFlop(currentStage);
+                        orderPlayers(true);
+                        prevStage = currentStage;
+                        currentStage = Stage.Wait;
+                        break;
                 }
+                
+                if (currentStage == Stage.Wait)
+                {
+                    nextTurnClientRpc(playerOrder[0]);
+                    currentStage = Stage.WaitEnd; 
+                }
+                
+                time += 7;
+                
             }
         }
     }
@@ -385,7 +346,37 @@ public class DataManager : NetworkBehaviour
         }
     }
 
+    public void endTurn()
+    {
+        if(actionTaken)
+        {
+            endTurnClientRpc(playerOrder[0], clientRpcParams);
+            playerOrderRe.Add(playerOrder[0]);//////////////////
+            playerOrder.RemoveAt(0);
+        }
+        else
+        {
+            if(GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().currentBet.Value == currentBet.Value)        
+            {
+                forceCallClientRpc(playerOrder[0]);
+            }
+            else
+            {
+                forceFoldClientRpc(playerOrder[0]);
+            }
+        }
+        actionTaken = false;
+    }
+
     public void deal () {
+        previousBet.Value = 0;
+        endStageClientRpc(clientRpcParams);
+        mainPot.Value = 0;
+        updatePotClientRpc(clientRpcParams);
+
+        currentBet.Value = bigBlind;
+        orderSeats();
+        orderPlayers(false);
         string card1;
         string card2;
         foreach(ulong id in playerOrder)
@@ -394,6 +385,13 @@ public class DataManager : NetworkBehaviour
             card2 = getRandomCard();
             GetPlayerNetworkObject(id).GetComponent<Player>().dealCards(card1, card2);
         }
+        dealer++;
+        if(dealer > 6) {
+            dealer = 0;
+        }
+        
+        callBlindPlayer(smallBlind);
+        callBlindPlayer(bigBlind);
     }
 
     public void postFlop(Stage stage)
@@ -435,9 +433,12 @@ public class DataManager : NetworkBehaviour
     }
 
     public void endStage() {
+        resetBetStateClientRpc(clientRpcParams);
+        updatePotClientRpc(clientRpcParams);
         generateDeck();
         shuffleDeck();
         playerEndClientRpc(riverCards, clientRpcParams);
+        time -=(float)5.5;
     }
 
     [ClientRpc]
@@ -475,19 +476,18 @@ public class DataManager : NetworkBehaviour
         newHand.rank = rank;
         newHand.strength = strength;
         playerHands.Add(newHand);
-
     }
     
     [ServerRpc(RequireOwnership = false)]
     public void playerFoldServerRpc(ulong senderId) {
-                            actionTaken = true;
+        actionTaken = true;
         time = NetworkManager.Singleton.NetworkTime; //force loop update
         Debug.Log("player fold called");
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void playerCallServerRpc(ulong senderID, ulong bet) {
-                            actionTaken = true;
+        actionTaken = true;
 
         mainPot.Value += bet;
         time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
@@ -495,12 +495,11 @@ public class DataManager : NetworkBehaviour
 
     public void playerCall(ulong senderID, ulong bet){
         mainPot.Value += bet;
-        //time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void playerRaiseServerRpc(ulong senderID, ulong call, ulong bet) {
-                                    actionTaken = true;
+        actionTaken = true;
 
         mainPot.Value += call;
         currentBet.Value += bet;
