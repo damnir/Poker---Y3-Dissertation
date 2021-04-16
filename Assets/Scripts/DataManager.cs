@@ -107,6 +107,7 @@ public class DataManager : NetworkBehaviour
 
     public GameObject buttons;
     public GameObject pot;
+    public bool actionTaken = false;
 
     void Start()
     {
@@ -150,9 +151,27 @@ public class DataManager : NetworkBehaviour
                 updateClientParams();
 
                 if(currentStage == Stage.WaitEnd) {
-                    endTurnClientRpc(playerOrder[0], clientRpcParams);
-                    playerOrderRe.Add(playerOrder[0]);//////////////////
-                    playerOrder.RemoveAt(0);
+                    if(actionTaken)
+                    {
+                        endTurnClientRpc(playerOrder[0], clientRpcParams);
+                        playerOrderRe.Add(playerOrder[0]);//////////////////
+                        playerOrder.RemoveAt(0);
+                    }
+                    else
+                    {
+                        if(GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().currentBet.Value == currentBet.Value)        
+                        {
+                            forceCallClientRpc(playerOrder[0]);
+                        }
+                        else
+                        {
+                            forceFoldClientRpc(playerOrder[0]);
+                        }
+                    }
+                    actionTaken = false;
+
+
+
                     if(playerOrder.Count < 1)
                     {
                         if(prevStage == Stage.Flop1) {
@@ -335,6 +354,25 @@ public class DataManager : NetworkBehaviour
             }
         }
     }
+
+    [ClientRpc]
+    public void forceFoldClientRpc(ulong id)
+    {
+        if(NetworkManager.Singleton.LocalClientId == id)
+        {
+            GetLocalPlayerObject().GetComponent<Player>().fold();
+        }
+    }
+
+    [ClientRpc]
+    public void forceCallClientRpc(ulong id)
+    {
+        if(NetworkManager.Singleton.LocalClientId == id)
+        {
+            GetLocalPlayerObject().GetComponent<Player>().call();
+        }
+    }
+
     [ClientRpc]
     public void updatePotClientRpc(ClientRpcParams clientRpcParams)
     {
@@ -452,23 +490,29 @@ public class DataManager : NetworkBehaviour
     
     [ServerRpc(RequireOwnership = false)]
     public void playerFoldServerRpc(ulong senderId) {
+                            actionTaken = true;
+
         time = NetworkManager.Singleton.NetworkTime; //force loop update
         Debug.Log("player fold called");
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void playerCallServerRpc(ulong senderID, ulong bet) {
+                            actionTaken = true;
+
         mainPot.Value += bet;
         time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
     }
 
     public void playerCall(ulong senderID, ulong bet){
         mainPot.Value += bet;
-        time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
+        //time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void playerRaiseServerRpc(ulong senderID, ulong call, ulong bet) {
+                                    actionTaken = true;
+
         mainPot.Value += call;
         currentBet.Value += bet;
         previousBet.Value = bet;
@@ -841,5 +885,6 @@ public class DataManager : NetworkBehaviour
             GetPlayerNetworkObject(hand.pId).GetComponent<Player>().winner(win);
         }
     }
+
 
 }
