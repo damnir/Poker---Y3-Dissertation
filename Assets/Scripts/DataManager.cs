@@ -53,7 +53,8 @@ public class DataManager : NetworkBehaviour
         Flop2,
         Flop3,
         End,
-        Showdown
+        Showdown,
+        Forcewin
     }
 
     public struct Hand
@@ -165,8 +166,12 @@ public class DataManager : NetworkBehaviour
                         }
                         if(currentStage != Stage.End){
                             orderPlayers(true);
-                            resetBetStateClientRpc(clientRpcParams);
                             updatePotClientRpc(clientRpcParams);
+
+                            if(currentStage != Stage.Forcewin && prevStage != Stage.Forcewin)
+                            {
+                                resetBetStateClientRpc(clientRpcParams);
+                            }
                         }
                         playerOrderRe.Clear();
                     }
@@ -177,9 +182,20 @@ public class DataManager : NetworkBehaviour
                 }
                
                 updateClientParams();
-                
+
+                if(prevStage != Stage.Forcewin)
+                {
+                    ulong fIpd = checkForceWin();
+                    if(fIpd != 0)
+                    {
+                        GetPlayerNetworkObject(fIpd).GetComponent<Player>().winner(mainPot.Value);
+                        currentStage = Stage.Forcewin;
+                    }
+                }
+
                 switch (currentStage)
                 {
+ 
                     case Stage.Deal:
                         deal();
 
@@ -207,6 +223,11 @@ public class DataManager : NetworkBehaviour
                         prevStage = currentStage;
                         currentStage = Stage.Wait;
                         break;
+
+                    case Stage.Forcewin:
+                        prevStage = currentStage;
+                        currentStage = Stage.Deal;
+                        break;
                 }
                 
                 if (currentStage == Stage.Wait)
@@ -233,6 +254,8 @@ public class DataManager : NetworkBehaviour
                         seatOrder[i] = 0;
                     }
                 }
+                int index = playerIds.FindIndex(a => a == id);
+                players.RemoveAt(index);
                 playerOrder.Remove(id);
                 playerOrderRe.Remove(id);
                 playerIds.Remove(id);
@@ -351,7 +374,10 @@ public class DataManager : NetworkBehaviour
         if(actionTaken)
         {
             endTurnClientRpc(playerOrder[0], clientRpcParams);
-            playerOrderRe.Add(playerOrder[0]);//////////////////
+            if(!GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().folded.Value)
+            {
+                playerOrderRe.Add(playerOrder[0]);//////////////////
+            }
             playerOrder.RemoveAt(0);
         }
         else
@@ -481,7 +507,7 @@ public class DataManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void playerFoldServerRpc(ulong senderId) {
         actionTaken = true;
-        time = NetworkManager.Singleton.NetworkTime; //force loop update
+        time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
         Debug.Log("player fold called");
     }
 

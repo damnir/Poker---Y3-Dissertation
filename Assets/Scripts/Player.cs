@@ -333,7 +333,7 @@ public class Player : NetworkBehaviour
     public void resetBetState() {
         currentBet.Value = 0;
 
-        if(betState.Value != BetState.Fold)
+        if(betState.Value != BetState.Fold && betState.Value != BetState.Win)
         {
             betState.Value = BetState.Wait;
         }  
