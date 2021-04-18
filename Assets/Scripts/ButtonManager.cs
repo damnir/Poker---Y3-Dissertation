@@ -28,9 +28,10 @@ public class ButtonManager : NetworkBehaviour
     public GameObject callText;
     public GameObject raiseText;
     public GameObject checkText;
+    public GameObject loginScreen;
 
     void Start() {
-        //NetworkingManager.Singleton.StartServer();
+        //NetworkManager.Singleton.StartServer();
     }
 
     public void onServerClicked()
@@ -42,6 +43,7 @@ public class ButtonManager : NetworkBehaviour
 
     public void onClientClicker()
     {
+        loginScreen.SetActive(true);
         lobbyList.SetActive(true);
 
         NetworkManager.Singleton.StartClient();
@@ -88,6 +90,42 @@ public class ButtonManager : NetworkBehaviour
 
     public void onSliderValueChanged() {
         raiseText.GetComponent<Text>().text ="$"+(ulong)slider.GetComponent<Slider>().value;
+    }
+
+    public static ButtonManager instance;
+
+    //Screen object variables
+    public GameObject loginUI;
+    public GameObject registerUI;
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != null)
+        {
+            Debug.Log("Instance already exists, destroying object!");
+            Destroy(this);
+        }
+    }
+
+    //Functions to change the login screen UI
+    public void LoginScreen() //Back button
+    {
+        loginUI.SetActive(true);
+        registerUI.SetActive(false);
+    }
+    public void RegisterScreen() // Regester button
+    {
+        loginUI.SetActive(false);
+        registerUI.SetActive(true);
+    }
+
+    public void MenuScreen()
+    {
+        loginScreen.SetActive(false);
     }
 
 }

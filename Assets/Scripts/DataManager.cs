@@ -395,6 +395,8 @@ public class DataManager : NetworkBehaviour
     }
 
     public void deal () {
+        generateDeck();
+
         previousBet.Value = 0;
         endStageClientRpc(clientRpcParams);
         mainPot.Value = 0;

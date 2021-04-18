@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "681202147714",
+    "project_id": "untitledpoker-4fc1a",
+    "firebase_url": "https://untitledpoker-4fc1a-default-rtdb.europe-west1.firebasedatabase.app/",
+    "storage_bucket": "untitledpoker-4fc1a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:681202147714:android:dd977bfbb489d116e3ef9b",
+        "android_client_info": {
+          "package_name": "com.DefaultCompany.UntitledPoker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "681202147714-8h09da9flr2omflt6qgqpsq9k03sa998.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-yKe5LGAKQHDd2bFi_gb7v1Do07d-RYM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "681202147714-8h09da9flr2omflt6qgqpsq9k03sa998.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

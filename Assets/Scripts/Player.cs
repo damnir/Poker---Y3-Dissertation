@@ -31,6 +31,12 @@ public class Player : NetworkBehaviour
         Ingame
     }
 
+    NetworkVariableSettings netVarEveryone = new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.OwnerOnly,
+            ReadPermission = NetworkVariablePermission.Everyone
+        };
+
     public NetworkVariable<ulong> clientID = new NetworkVariable<ulong>(new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -109,9 +115,21 @@ public class Player : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
-    public ulong lobbyBet;
+        
+    public NetworkVariableString netId = new NetworkVariableString(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
 
-    
+    public NetworkVariableString username = new NetworkVariableString(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
+
+    public ulong lobbyBet;
 
     public GameObject foldGo;
     public GameObject card1;
@@ -120,6 +138,8 @@ public class Player : NetworkBehaviour
     public GameObject animation;
     public GameObject ownerGo;
     public GameObject win;
+    public GameObject dbManager;
+
     GameObject text;
 
     public GameObject buttonManager;
@@ -140,7 +160,7 @@ public class Player : NetworkBehaviour
             Text t1 = GameObject.Find("CLIENT_TEXT").GetComponent<Text>();
             Text t2 = GameObject.Find("CLIENT_TEXT2").GetComponent<Text>();
 
-            cash.Value = 100000;
+            cash.Value = 0;
 
             t1.text = "Client ID: " + OwnerClientId;
             t2.text = "Client ID: " + OwnerClientId;
@@ -167,6 +187,15 @@ public class Player : NetworkBehaviour
             //this.transform = GameObject.Find(pos.Value).transform;
             lobbyBet = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
         }catch(NullReferenceException e) { }
+
+        try {
+            if(IsOwner)
+            {
+                GameObject.Find("UsernameText").GetComponent<Text>().text = username.Value;
+                GameObject.Find("CashText").GetComponent<Text>().text = "$" +cash.Value.ToString();
+            }
+        }catch(NullReferenceException e) { }
+
 
         if(IsClient) {
 
@@ -247,6 +276,28 @@ public class Player : NetworkBehaviour
             card2.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
             card2.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + card2v.Value);
         }
+
+
+    }
+
+    public void updateCash(int newCash)
+    {
+        cash.Value = (ulong)newCash;
+    }
+
+    public void setNetId(string id)
+    {
+        netId.Value = id;
+    }
+
+    public void setUsername(string _username)
+    {
+        username.Value = _username;
+    }
+
+    public void setCash(ulong newCash)
+    {
+        cash.Value = newCash;
     }
 
     void changeText(string objectName, string newText)
@@ -317,6 +368,7 @@ public class Player : NetworkBehaviour
 
         betGoText.Value = "<sprite=3>"+(currentBet.Value);
         betState.Value = BetState.Call;
+        dbUpdateCash();
     }
 
     public void raise(ulong bet) {
@@ -328,6 +380,7 @@ public class Player : NetworkBehaviour
 
         betGoText.Value = "<sprite=0>$"+ (lobbyBet + bet);
         betState.Value = BetState.Raise;
+        dbUpdateCash();
     }
 
     public void resetBetState() {
@@ -346,6 +399,7 @@ public class Player : NetworkBehaviour
         betGoText.Value = "<sprite=3>$"+currentBet.Value;
         currentLobby.Value.GetComponent<DataManager>().playerCall(OwnerClientId, bet);
         betState.Value = BetState.Call;
+        dbUpdateCash();
     }
 
     public void turn(bool turn) {
@@ -357,7 +411,12 @@ public class Player : NetworkBehaviour
         betGoText.Value = "<sprite=0>+$"+ wcash;
         cash.Value += wcash;
         betState.Value = BetState.Win;
+        dbUpdateCash();
     }
 
+    void dbUpdateCash()
+    {
+        StartCoroutine(LoginManager.instance.UpdateCashClient(netId.Value, (int)cash.Value));
+    }
 
 }
