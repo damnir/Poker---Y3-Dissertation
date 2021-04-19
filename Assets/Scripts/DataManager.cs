@@ -88,6 +88,9 @@ public class DataManager : NetworkBehaviour
     public ulong bigBlind;
     public ulong sidePot;
 
+    Game game = new Game();
+
+
     public NetworkVariable<ulong> currentBet = new NetworkVariable<ulong>(new NetworkVariableSettings
     {
         WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
@@ -212,6 +215,7 @@ public class DataManager : NetworkBehaviour
                     
                     case Stage.Showdown:
                         determineWinner();
+                        pushNewRound(); //DB GAME REPLAY
                         playerHands.Clear();
                         prevStage = currentStage;
                         currentStage = Stage.Deal; 
@@ -395,6 +399,8 @@ public class DataManager : NetworkBehaviour
     }
 
     public void deal () {
+        game.clearGame(); //GAME DB REPLAY
+
         generateDeck();
 
         previousBet.Value = 0;
@@ -508,6 +514,9 @@ public class DataManager : NetworkBehaviour
     
     [ServerRpc(RequireOwnership = false)]
     public void playerFoldServerRpc(ulong senderId) {
+        game.addTurn(senderId.ToString(), "fold", "0"); //GAME DB REPLAY
+
+
         actionTaken = true;
         time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
         Debug.Log("player fold called");
@@ -515,6 +524,8 @@ public class DataManager : NetworkBehaviour
 
     [ServerRpc(RequireOwnership = false)]
     public void playerCallServerRpc(ulong senderID, ulong bet) {
+        game.addTurn(senderID.ToString(), "call", bet.ToString()); //GAME DB REPLAY
+
         actionTaken = true;
 
         mainPot.Value += bet;
@@ -527,6 +538,8 @@ public class DataManager : NetworkBehaviour
 
     [ServerRpc(RequireOwnership = false)]
     public void playerRaiseServerRpc(ulong senderID, ulong call, ulong bet) {
+        game.addTurn(senderID.ToString(), "raise", bet.ToString()); //GAME DB REPLAY
+
         actionTaken = true;
 
         mainPot.Value += call;
@@ -943,10 +956,22 @@ public class DataManager : NetworkBehaviour
         {
             pIds.Add(_id);
         }
+
+        public void clearGame()
+        {
+            pIds.Clear();
+            round.Clear();
+        }
         /*
         public Game(string _userNetId, string bet, string action) {
             
         }*/
+    }
+
+    public void pushNewRound()
+    {
+        StartCoroutine(LoginManager.instance.AddNewGame(game));
+        Debug.Log("testDb called");  
     }
 
     public void testDBGame()
