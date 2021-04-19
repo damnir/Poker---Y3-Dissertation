@@ -922,5 +922,53 @@ public class DataManager : NetworkBehaviour
         return 0;
     }
 
+    public class Game
+    {
+        public List<string> pIds = new List<string>();
+        //public List<Dictionary<int, string>> round = new List<Dictionary<int, string>>();
+        //IDictionary<int, string> turn = new Dictionary<int, string>();
+        //public string[] turn = new string[3];
+        public List<string> round = new List<string>();
+
+        public Game() 
+        {
+        }
+
+        public void addTurn(string _id, string action, string bet)
+        {
+            round.Add(_id+"-"+action+"-"+bet);
+        }
+
+        public void addPlayerId(string _id)
+        {
+            pIds.Add(_id);
+        }
+        /*
+        public Game(string _userNetId, string bet, string action) {
+            
+        }*/
+    }
+
+    public void testDBGame()
+    {
+        Game _game = new Game();
+
+        _game.addPlayerId("2");
+        _game.addPlayerId("3");
+        _game.addPlayerId("4");
+        _game.addTurn("2", "fold", "100");
+        _game.addTurn("3", "call", "200");
+        _game.addTurn("4", "call", "200");
+
+    /*
+        foreach(string[] poo in _game.round)
+        {
+            Debug.Log(poo[0] + poo[1] + poo[2]);
+        }*/
+
+        StartCoroutine(LoginManager.instance.AddNewGame(_game));
+        Debug.Log("testDb called");
+
+    }
 
 }

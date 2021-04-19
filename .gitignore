@@ -72,3 +72,6 @@ crashlytics-build.properties
 
 #file too big
 *.resS
+
+UntitledPoker_Data/ 
+Assets/Firebase/Plugins/

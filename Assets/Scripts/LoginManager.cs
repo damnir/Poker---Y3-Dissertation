@@ -412,4 +412,31 @@ public class LoginManager : MonoBehaviour
             //Deaths are now updated
         }
     }
+
+    public IEnumerator AddNewGame(DataManager.Game _game)
+    {
+                Debug.Log("addCalled");
+
+        //Set the currently logged in user deaths
+        //var DBTask = DBreference.Child("games").push;
+        string key = DBreference.Child("games").Push().Key;
+        string json = JsonUtility.ToJson(_game);
+
+        var DBTask = DBreference.Child("games").Child(key).SetRawJsonValueAsync(json);
+
+
+        //DBreference.UpdateChildrenAsync(_game);
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+        else
+        {
+            //Deaths are now updated
+        }
+    }
+
+
 }
