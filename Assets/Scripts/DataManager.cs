@@ -417,6 +417,9 @@ public class DataManager : NetworkBehaviour
         {
             card1 = getRandomCard();
             card2 = getRandomCard();
+
+            game.addPlayer(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, card1 + "-" + card2);
+
             GetPlayerNetworkObject(id).GetComponent<Player>().dealCards(card1, card2);
         }
         dealer++;
@@ -432,21 +435,28 @@ public class DataManager : NetworkBehaviour
     {
         currentBet.Value = 0;
         previousBet.Value = 0;
+        string card;
 
         switch(stage){
             case Stage.Flop1:
                 for (int i = 0; i < 3; i++)
                 {
-                    riverCards[i] = getRandomCard();
+                    card = getRandomCard();
+                    riverCards[i] = card;
+                    game.addRiverCard(card);
                 }  
                 postFlopClientRpc(riverCards, 3, clientRpcParams);
                 break;
             case Stage.Flop2:
-                riverCards[3] = getRandomCard();
+                card = getRandomCard();
+                game.addRiverCard(card);
+                riverCards[3] = card;
                 postFlopClientRpc(riverCards, 4, clientRpcParams);
                 break;
             case Stage.Flop3:
-                riverCards[4] = getRandomCard();
+                card = getRandomCard();
+                game.addRiverCard(card);
+                riverCards[4] = card;
                 postFlopClientRpc(riverCards, 5, clientRpcParams);
                 break;
         }
@@ -937,10 +947,12 @@ public class DataManager : NetworkBehaviour
 
     public class Game
     {
-        public List<string> pIds = new List<string>();
+        //public List<string> pIds = new List<string>();
+        public List<string> players = new List<string>();
         //public List<Dictionary<int, string>> round = new List<Dictionary<int, string>>();
         //IDictionary<int, string> turn = new Dictionary<int, string>();
         //public string[] turn = new string[3];
+        public List<string> river = new List<string>();
         public List<string> round = new List<string>();
 
         public Game() 
@@ -952,15 +964,21 @@ public class DataManager : NetworkBehaviour
             round.Add(_id+"-"+action+"-"+bet);
         }
 
-        public void addPlayerId(string _id)
+        public void addPlayer(string _id, string cards)
         {
-            pIds.Add(_id);
+            players.Add(_id+"-"+cards);
+        }
+
+        public void addRiverCard(string _card)
+        {
+            river.Add(_card);
         }
 
         public void clearGame()
         {
-            pIds.Clear();
+            players.Clear();
             round.Clear();
+            river.Clear();
         }
         /*
         public Game(string _userNetId, string bet, string action) {
@@ -974,6 +992,7 @@ public class DataManager : NetworkBehaviour
         Debug.Log("testDb called");  
     }
 
+    /*
     public void testDBGame()
     {
         Game _game = new Game();
@@ -985,15 +1004,15 @@ public class DataManager : NetworkBehaviour
         _game.addTurn("3", "call", "200");
         _game.addTurn("4", "call", "200");
 
-    /*
+    
         foreach(string[] poo in _game.round)
         {
             Debug.Log(poo[0] + poo[1] + poo[2]);
-        }*/
+        }
 
         StartCoroutine(LoginManager.instance.AddNewGame(_game));
         Debug.Log("testDb called");
 
-    }
+    }*/
 
 }

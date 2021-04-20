@@ -45,6 +45,7 @@ public class LoginManager : MonoBehaviour
     public Transform scoreboardContent;
 
     public static LoginManager instance;
+    public TMP_InputField friendUsernameField;
 
     void Awake()
     {
@@ -169,6 +170,11 @@ public class LoginManager : MonoBehaviour
             confirmLoginText.text = "Logged In";
 
             StartCoroutine(LoadUserData());
+            StartCoroutine(SetOnlineStatus(User.UserId, true));
+            
+            StartCoroutine(LoadFriendRequests());
+
+
 
             yield return new WaitForSeconds(2);
 
@@ -253,6 +259,7 @@ public class LoginManager : MonoBehaviour
 
                         StartCoroutine(UpdateUsernameDatabase(User.DisplayName));
                         StartCoroutine(UpdateCash(100000));
+                        StartCoroutine(SetOnlineStatus(User.UserId, false));
 
                         //UpdateCash(100000);
                         ButtonManager.instance.LoginScreen();                        
@@ -334,25 +341,45 @@ public class LoginManager : MonoBehaviour
         
         else if (DBTask.Result.Value == null)
         {
-            //No data exists yet
-            //xpField.text = "0";
-            //killsField.text = "0";
-            //deathsField.text = "0";
             GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().updateCash(100000);
         }
         else
         {
             //Data has been retrieved
             DataSnapshot snapshot = DBTask.Result;
-                        GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().setUsername(User.DisplayName);
+            GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().setUsername(User.DisplayName);
 
             GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().updateCash(Int32.Parse(snapshot.Child("cash").Value.ToString()));
             GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().setNetId(User.UserId);
 
             Debug.Log("Cash updated");
-            //xpField.text = snapshot.Child("xp").Value.ToString();
-            //killsField.text = snapshot.Child("kills").Value.ToString();
-            //deathsField.text = snapshot.Child("deaths").Value.ToString();
+        }
+    }
+
+    private IEnumerator LoadFriendRequests()
+    {
+        //Get the currently logged in user data
+        var DBTask = DBreference.Child("users").Child(User.UserId).Child("friend_requests").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+
+        else if (DBTask.Result.Value == null)
+        {
+        }
+        else
+        {
+            Debug.Log("Load Friend Request");
+            //Data has been retrieved
+            DataSnapshot snapshot = DBTask.Result;
+            foreach(DataSnapshot dataSnapshot in snapshot.Children)
+            {
+                Debug.Log("Friend request from: " + dataSnapshot.Child("username").Value);
+            }
         }
     }
 
@@ -435,6 +462,95 @@ public class LoginManager : MonoBehaviour
         else
         {
             //Deaths are now updated
+        }
+    }
+    public IEnumerator SetOnlineStatus(string _id, bool _status)
+    {
+        //Set the currently logged in user deaths
+        var DBTask = DBreference.Child("users").Child(_id).Child("online").SetValueAsync(_status);
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+        else
+        {
+            //Deaths are now updated
+        }
+    }
+
+    public IEnumerator addFriend(string _username)
+    {
+        var DBTask = DBreference.Child("users").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+        else
+        {
+            //Data has been retrieved
+            DataSnapshot snapshot = DBTask.Result;
+
+            //Loop through every users UID
+            foreach (DataSnapshot childSnapshot in snapshot.Children)
+            {
+                if(childSnapshot.Child("username").Value.ToString() == _username)
+                {
+                    Debug.Log("User found: " + _username);
+                    Debug.Log("Sender: " + User.DisplayName + " ID" + User.UserId);
+                    Friend friend = new Friend(User.DisplayName, User.UserId);
+                    //Debug.Log("childSnapshot: " + childSnapshot.ToString());
+                    StartCoroutine(sendFriendRequest(childSnapshot.Key, friend));
+
+                }
+            }
+        }
+    }
+
+    public IEnumerator sendFriendRequest(string _userId, Friend _friend)
+    {
+        string json = JsonUtility.ToJson(_friend);
+        //Set the currently logged in user deaths
+        string key = DBreference.Child("friend_requests").Push().Key;
+        var DBTask = DBreference.Child("users").Child(_userId).Child("friend_requests").Child(key).SetRawJsonValueAsync(json);
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+        else
+        {
+            Debug.Log("Sent friend request to " + _friend.username);
+            //Deaths are now updated
+        }
+    }
+
+    public void onSearchClick()
+    {
+        StartCoroutine(addFriend(friendUsernameField.text));
+    }
+
+    public class Friend
+    {
+        public string username;
+        public string id;
+
+        public Friend()
+        {
+
+        }
+
+        public Friend(string _username, string _id)
+        {
+            this.username = _username;
+            this.id = _id;
         }
     }
 
