@@ -21,7 +21,9 @@ public class FriendRequest : MonoBehaviour
     public void onAcceptClick()
     {
         string cId = GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().netId.Value;
-        LoginManager.instance.acceptFriend(username, netId, cId);
+        string cUserName = GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().username.Value;
+
+        LoginManager.instance.acceptFriend(username, netId, cId, cUserName);
         //StartCoroutine(LoginManager.instance.acceptFriendRequest(netId, username));
         Destroy(this);
     }
