@@ -46,6 +46,8 @@ public class LoginManager : MonoBehaviour
 
     public static LoginManager instance;
     public TMP_InputField friendUsernameField;
+    public GameObject friendRequestGo;
+    public GameObject friendRequestsListGo;
 
     void Awake()
     {
@@ -379,6 +381,11 @@ public class LoginManager : MonoBehaviour
             foreach(DataSnapshot dataSnapshot in snapshot.Children)
             {
                 Debug.Log("Friend request from: " + dataSnapshot.Child("username").Value);
+                GameObject newFriendRequest = Instantiate(friendRequestGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
+                newFriendRequest.GetComponent<FriendRequest>().init(dataSnapshot.Child("username").Value.ToString(), dataSnapshot.Child("id").Value.ToString());
+                //newFriendRequest.GetComponentInChildren<
+                //newFriendRequest.transform.parent = friendRequestsListGo.transform;
+                newFriendRequest.transform.SetParent(friendRequestsListGo.transform);
             }
         }
     }
@@ -516,8 +523,8 @@ public class LoginManager : MonoBehaviour
     {
         string json = JsonUtility.ToJson(_friend);
         //Set the currently logged in user deaths
-        string key = DBreference.Child("friend_requests").Push().Key;
-        var DBTask = DBreference.Child("users").Child(_userId).Child("friend_requests").Child(key).SetRawJsonValueAsync(json);
+        //string key = DBreference.Child("friend_requests").Push()._friend.;
+        var DBTask = DBreference.Child("users").Child(_userId).Child("friend_requests").Child(_friend.id).SetRawJsonValueAsync(json);
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
@@ -530,6 +537,51 @@ public class LoginManager : MonoBehaviour
             Debug.Log("Sent friend request to " + _friend.username);
             //Deaths are now updated
         }
+    }
+
+    public IEnumerator acceptFriendRequest(string _userId, Friend _friend)
+    {
+
+        string json = JsonUtility.ToJson(_friend);
+        //Set the currently logged in user deaths
+        //string key = DBreference.Child("friends").Push().Key;
+        var DBTask = DBreference.Child("users").Child(_userId).Child("friends").Child(_friend.id).SetRawJsonValueAsync(json);
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+        else
+        {
+            //Debug.Log("Sent friend request to " + _friend.username);
+            //Deaths are now updated
+        }
+    }
+
+    public IEnumerator removeFriendRequest(string _userId, string _FRID)
+    {
+        var DBTask = DBreference.Child("users").Child(_userId).Child("friend_requests").Child(_FRID).RemoveValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+        else
+        {
+            //Debug.Log("Sent friend request to " + _friend.username);
+            //Deaths are now updated
+        }
+    }
+
+    public void acceptFriend(string username, string id, string _senderId)
+    {
+        Friend friend = new Friend(username, id);
+        StartCoroutine(acceptFriendRequest(_senderId, friend));
+        StartCoroutine(removeFriendRequest(_senderId, id));
     }
 
     public void onSearchClick()

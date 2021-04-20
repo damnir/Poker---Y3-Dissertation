@@ -29,6 +29,7 @@ public class ButtonManager : NetworkBehaviour
     public GameObject raiseText;
     public GameObject checkText;
     public GameObject loginScreen;
+    public GameObject friendsList;
 
     void Start() {
         //NetworkManager.Singleton.StartServer();
@@ -126,6 +127,17 @@ public class ButtonManager : NetworkBehaviour
     public void MenuScreen()
     {
         loginScreen.SetActive(false);
+    }
+
+    public void onFriendsListClick()
+    {
+        if(friendsList.active)
+        {
+            friendsList.SetActive(false);
+        }
+        else{
+            friendsList.SetActive(true);
+        }
     }
 
 
