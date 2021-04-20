@@ -30,6 +30,7 @@ public class ButtonManager : NetworkBehaviour
     public GameObject checkText;
     public GameObject loginScreen;
     public GameObject friendsList;
+    public GameObject friendsListInGame;
 
     void Start() {
         //NetworkManager.Singleton.StartServer();
@@ -137,6 +138,18 @@ public class ButtonManager : NetworkBehaviour
         }
         else{
             friendsList.SetActive(true);
+        }
+    }
+
+    public void onFriendsListGameClick()
+    {
+        if(friendsListInGame.active)
+        {
+            friendsListInGame.SetActive(false);
+        }
+        else{
+            LoginManager.instance.UpdateFriendsListIg(GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().netId.Value);
+            friendsListInGame.SetActive(true);
         }
     }
 

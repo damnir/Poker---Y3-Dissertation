@@ -35,15 +35,6 @@ public class LoginManager : MonoBehaviour
     public TMP_InputField passwordRegisterVerifyField;
     public TMP_Text warningRegisterText;
 
-    //User Data variables
-    [Header("UserData")]
-    public TMP_InputField usernameField;
-    public TMP_InputField xpField;
-    public TMP_InputField killsField;
-    public TMP_InputField deathsField;
-    public GameObject scoreElement;
-    public Transform scoreboardContent;
-
     public static LoginManager instance;
     [Header("Friends List")]
     public TMP_InputField friendUsernameField;
@@ -52,6 +43,8 @@ public class LoginManager : MonoBehaviour
     public GameObject friendsGo;
     public GameObject friendsListGo;
     public TMP_Text sendFriendText;
+    public GameObject friendIgGo;
+    public GameObject friendsListInGameGo;
 
 
     void Awake()
@@ -129,7 +122,7 @@ public class LoginManager : MonoBehaviour
     //Function for the scoreboard button
     public void ScoreboardButton()
     {        
-        StartCoroutine(LoadScoreboardData());
+        //StartCoroutine(LoadScoreboardData());
     }
 
     private IEnumerator Login(string _email, string _password)
@@ -181,6 +174,8 @@ public class LoginManager : MonoBehaviour
             
             StartCoroutine(LoadFriendRequests());
             StartCoroutine(LoadFriendsList());
+            StartCoroutine(clientConnected());
+
 
             yield return new WaitForSeconds(2);
 
@@ -389,7 +384,7 @@ public class LoginManager : MonoBehaviour
                 newFriendRequest.GetComponent<FriendRequest>().init(dataSnapshot.Child("username").Value.ToString(), dataSnapshot.Child("id").Value.ToString());
                 //newFriendRequest.GetComponentInChildren<
                 //newFriendRequest.transform.parent = friendRequestsListGo.transform;
-                newFriendRequest.transform.SetParent(friendRequestsListGo.transform);
+                newFriendRequest.transform.SetParent(friendRequestsListGo.transform, false);
             }
         }
     }
@@ -422,11 +417,12 @@ public class LoginManager : MonoBehaviour
                 newFriendRequest.GetComponent<FriendRequest>().init(dataSnapshot.Child("username").Value.ToString(), dataSnapshot.Child("id").Value.ToString());
                 //newFriendRequest.GetComponentInChildren<
                 //newFriendRequest.transform.parent = friendRequestsListGo.transform;
-                newFriendRequest.transform.SetParent(friendsListGo.transform);
+                newFriendRequest.transform.SetParent(friendsListGo.transform, false);
             }
         }
     }
 
+    /*
     private IEnumerator LoadScoreboardData()
     {
         //Get all the users data ordered by kills amount
@@ -465,7 +461,7 @@ public class LoginManager : MonoBehaviour
             //Go to scoareboard screen
             ///////ButtonManager.instance.ScoreboardScreen();
         }
-    }
+    }*/
 
     public IEnumerator UpdateCashClient(string id, int _cash)
     {
@@ -511,7 +507,19 @@ public class LoginManager : MonoBehaviour
     public IEnumerator SetOnlineStatus(string _id, bool _status)
     {
         //Set the currently logged in user deaths
-        var DBTask = DBreference.Child("users").Child(_id).Child("online").SetValueAsync(_status);
+        var DBTask = DBreference.Child("users").Child(_id).Child("status").Child("online").SetValueAsync(_status);
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+        else
+        {
+            //Deaths are now updated
+        }
+        DBTask = DBreference.Child("users").Child(_id).Child("status").Child("ClientID").SetValueAsync(NetworkManager.Singleton.LocalClientId.ToString());
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
@@ -672,7 +680,7 @@ private IEnumerator UpdateFriendRequests(string _id)
                 Debug.Log("Friend request from: " + dataSnapshot.Child("username").Value);
                 GameObject newFriendRequest = Instantiate(friendRequestGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
                 newFriendRequest.GetComponent<FriendRequest>().init(dataSnapshot.Child("username").Value.ToString(), dataSnapshot.Child("id").Value.ToString());
-                newFriendRequest.transform.SetParent(friendRequestsListGo.transform);
+                newFriendRequest.transform.SetParent(friendRequestsListGo.transform, false);
             }
         }
     }
@@ -707,9 +715,121 @@ private IEnumerator UpdateFriendRequests(string _id)
                 Debug.Log("Friend request from: " + dataSnapshot.Child("username").Value);
                 GameObject newFriendRequest = Instantiate(friendsGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
                 newFriendRequest.GetComponent<FriendRequest>().init(dataSnapshot.Child("username").Value.ToString(), dataSnapshot.Child("id").Value.ToString());
-                newFriendRequest.transform.SetParent(friendsListGo.transform);
+                newFriendRequest.transform.SetParent(friendsListGo.transform, false);
             }
         }
+    }
+
+    public void UpdateFriendsListIg(string _senderId)
+    {
+        StartCoroutine(UpdateFriendsListInGame(_senderId));
+    }
+
+    private IEnumerator UpdateFriendsListInGame(string _id)
+    {
+        //Get the currently logged in user data
+        var DBTask = DBreference.Child("users").Child(_id).Child("friends").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+
+        var DBTask2 = DBreference.Child("online_players").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+
+
+        else if (DBTask.Result.Value == null)
+        {
+        }
+        else
+        {
+            Debug.Log("Load Friend Request");
+            //Data has been retrieved
+            DataSnapshot snapshot = DBTask.Result;
+            DataSnapshot snapshot2 = DBTask2.Result;
+
+            foreach (Transform child in friendsListInGameGo.transform)
+            {
+                GameObject.Destroy(child.gameObject);
+            }
+            foreach(DataSnapshot dataSnapshot in snapshot.Children)
+            {
+                foreach(DataSnapshot onlineSnapshot in snapshot2.Children)
+                {
+                    if(dataSnapshot.Key == onlineSnapshot.Key)
+                    {
+                        GameObject newFriendRequest = Instantiate(friendIgGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
+                        newFriendRequest.GetComponent<FriendRequest>().init(dataSnapshot.Child("username").Value.ToString(), dataSnapshot.Child("id").Value.ToString());
+                        newFriendRequest.transform.SetParent(friendsListInGameGo.transform, false);
+                    }
+                }   
+            }
+        }
+    }
+
+    public IEnumerator clientConnected()
+    {
+        string _clientId = NetworkManager.Singleton.LocalClientId.ToString();
+        var DBTask = DBreference.Child("online_players").Child(User.UserId).Child("ClientID").SetValueAsync(_clientId);
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+    }
+
+    public IEnumerator clientDisconnectDB(string _id)
+    {
+               //Get the currently logged in user data
+        var DBTask = DBreference.Child("online_players").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+
+        else if (DBTask.Result.Value == null)
+        {
+        }
+        else
+        {
+            //Data has been retrieved
+            DataSnapshot snapshot = DBTask.Result;
+
+            foreach(DataSnapshot dataSnapshot in snapshot.Children)
+            {
+                if(dataSnapshot.Child("ClientID").Value.ToString() == _id)
+                {
+                    var DBTask2 = DBreference.Child("users").Child(dataSnapshot.Key).Child("status").Child("online").SetValueAsync(false);
+                    yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);
+
+                    if (DBTask2.Exception != null)
+                    {
+                        Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+                    }
+                    var DBTask3 = DBreference.Child("online_players").Child(dataSnapshot.Key).RemoveValueAsync();
+                    yield return new WaitUntil(predicate: () => DBTask3.IsCompleted);
+
+                    if (DBTask3.Exception != null)
+                    {
+                        Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+                    }
+                }
+            }
+        }
+    }
+
+    public void clientDisconnect(ulong _id)
+    {
+        StartCoroutine(clientDisconnectDB(_id.ToString()));
     }
     
 

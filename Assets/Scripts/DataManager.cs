@@ -263,6 +263,7 @@ public class DataManager : NetworkBehaviour
                 playerOrder.Remove(id);
                 playerOrderRe.Remove(id);
                 playerIds.Remove(id);
+                LoginManager.instance.clientDisconnect(id);
             }
 
         }
