@@ -9,9 +9,10 @@ using System.Linq;
 using MLAPI;
 using System;
 using static MLAPI.Spawning.NetworkSpawnManager;
+using MLAPI.Messaging;
 
 
-public class LoginManager : MonoBehaviour
+public class LoginManager : NetworkBehaviour
 {
     //Firebase variables
     [Header("Firebase")]
@@ -45,6 +46,7 @@ public class LoginManager : MonoBehaviour
     public TMP_Text sendFriendText;
     public GameObject friendIgGo;
     public GameObject friendsListInGameGo;
+    public GameObject gameInviteGo;
 
 
     void Awake()
@@ -746,7 +748,6 @@ private IEnumerator UpdateFriendRequests(string _id)
             Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
         }
 
-
         else if (DBTask.Result.Value == null)
         {
         }
@@ -827,6 +828,67 @@ private IEnumerator UpdateFriendRequests(string _id)
         }
     }
 
+    private IEnumerator SendGameInviteDB(string _id, string _lobbyName, string _username)
+    {
+        //Get the currently logged in user data
+        var DBTask = DBreference.Child("online_players").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+        Debug.Log("Send invite - coroutine");
+
+        if (DBTask.Exception != null)
+        {
+            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+        }
+
+        DataSnapshot snapshot = DBTask.Result;
+
+        foreach(DataSnapshot dataSnapshot in snapshot.Children)
+        {
+            if(dataSnapshot.Key == _id)
+            {
+                        Debug.Log("Send invite - idFound: " +_id );
+
+                sendInviteServerRpc(_lobbyName, _username, dataSnapshot.Child("ClientID").Value.ToString());
+            }
+        }
+
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void sendInviteServerRpc(string lobbyName, string username, string id)
+    {
+        ClientRpcParams poo = new ClientRpcParams();
+        poo.Send.TargetClientIds = new ulong[1];
+        poo.Send.TargetClientIds[0] = UInt64.Parse(id);
+        Debug.Log("TARGET ID: " + id);
+        ulong[] yourClientIds = new ulong[]{UInt64.Parse(id)+1};
+        sendInviteClientRpc(lobbyName, username, id, new ClientRpcParams {
+        Send = new ClientRpcSendParams {
+                    TargetClientIds = new ulong[]{UInt64.Parse(id)}
+                }
+            }
+        );
+    }
+
+    [ClientRpc]
+    public void sendInviteClientRpc(string lobbyName, string username, string id, ClientRpcParams clientRpcParams = default)
+    {
+        Debug.Log("Game Invite received - lobby: " + lobbyName + " username: " + username);
+        GameObject newInvite = Instantiate(gameInviteGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
+        newInvite.transform.SetParent(GetLocalPlayerObject().transform, false);
+        newInvite.transform.position = GameObject.Find("GameInvitePlaceholder").transform.position;
+        newInvite.GetComponent<GameInvite>().setValues(username, lobbyName);
+
+       // GetLocalPlayerObject().gameObject.SetActive(false);
+    }
+    public void SendGameInvite(GameObject _lobby, string senderUsername, string targetId)
+    {
+        Debug.Log("Send invite - before coroutine");
+
+        StartCoroutine(SendGameInviteDB(targetId, _lobby.name, senderUsername));
+    }
+
     public void clientDisconnect(ulong _id)
     {
         StartCoroutine(clientDisconnectDB(_id.ToString()));
@@ -843,8 +905,9 @@ private IEnumerator UpdateFriendRequests(string _id)
 
         StartCoroutine(UpdateFriendRequests(_senderId));
         StartCoroutine(UpdateFriendsList(_senderId));
-
     }
+
+
 
     public void onSearchClick()
     {

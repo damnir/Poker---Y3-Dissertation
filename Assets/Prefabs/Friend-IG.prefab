@@ -119,8 +119,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: -5576367000342828120}
-        m_MethodName: onAcceptClick
+      - m_Target: {fileID: -7407306181993387059}
+        m_MethodName: sendInvite
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -220,6 +220,7 @@ GameObject:
   - component: {fileID: 1352293567256324898}
   - component: {fileID: 1278663496571610928}
   - component: {fileID: -5576367000342828120}
+  - component: {fileID: -7407306181993387059}
   m_Layer: 5
   m_Name: Friend-IG
   m_TagString: Untagged
@@ -300,6 +301,19 @@ MonoBehaviour:
   usernameTMP: {fileID: 8096119818330635376}
   netId: 
   username: 
+--- !u!114 &-7407306181993387059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5112914112860182456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a85472239d12804a98a5be214cd475d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inviteGo: {fileID: 0}
 --- !u!1 &6657067432618972634
 GameObject:
   m_ObjectHideFlags: 0

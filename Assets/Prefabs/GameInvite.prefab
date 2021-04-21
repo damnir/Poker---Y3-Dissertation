@@ -118,7 +118,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7205057153011596886}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: -6361064725296443996}
+        m_MethodName: onAcceptClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &775335747012483692
 GameObject:
   m_ObjectHideFlags: 0
@@ -542,6 +553,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inviteText: {fileID: 7487121491243422762}
   lobbyText: {fileID: 2844735263453444991}
+  newLobby: {fileID: 0}
 --- !u!1 &8159700327045612104
 GameObject:
   m_ObjectHideFlags: 0

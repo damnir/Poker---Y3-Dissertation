@@ -171,6 +171,10 @@ public class Player : NetworkBehaviour
         GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject);
         
         transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+  
+            this.transform.SetParent(GameObject.Find("Menu").transform, false);
+            this.transform.position = GameObject.Find("PlayerPlaceHolder").transform.position;
+        
 
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
     }

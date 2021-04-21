@@ -51,6 +51,7 @@ public class ButtonManager : NetworkBehaviour
         NetworkManager.Singleton.StartClient();
         buttonClient.SetActive(false);
         buttonServer.SetActive(false);
+
     }
 
     public void onFoldClicked()

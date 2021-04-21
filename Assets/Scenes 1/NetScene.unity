@@ -555,17 +555,6 @@ MonoBehaviour:
   - {fileID: 1469605373}
   - {fileID: 1151977403}
   - {fileID: 398490651}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   connectedPlayers: []
 --- !u!1 &82079200
 GameObject:
@@ -3826,6 +3815,36 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 531797405}
   m_CullTransparentMesh: 0
+--- !u!1 &538612657
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 538612658}
+  m_Layer: 0
+  m_Name: GameInvitePlaceholder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &538612658
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 538612657}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1261, y: 545, z: -211.69173}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 9
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &548084872
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6594,7 +6613,7 @@ GameObject:
   m_Component:
   - component: {fileID: 865803574}
   m_Layer: 0
-  m_Name: PlaceHolder
+  m_Name: PlayerPlaceHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11293,6 +11312,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1484276844}
   - component: {fileID: 1484276845}
+  - component: {fileID: 1484276846}
   m_Layer: 0
   m_Name: LoginManager
   m_TagString: Untagged
@@ -11347,6 +11367,25 @@ MonoBehaviour:
   friendIgGo: {fileID: 5112914112860182456, guid: 830ce8d4e7052be4882f90623727e389,
     type: 3}
   friendsListInGameGo: {fileID: 1197718016}
+  gameInviteGo: {fileID: 5740828306394379403, guid: c6a9e910801788b408c4ac3ac62ad855,
+    type: 3}
+--- !u!114 &1484276846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1484276843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NetworkInstanceId: 0
+  PrefabHash: 8275193574189084745
+  PrefabHashGenerator: LoginManager
+  AlwaysReplicateAsRoot: 0
+  DontDestroyWithOwner: 0
 --- !u!1 &1493210121
 GameObject:
   m_ObjectHideFlags: 0
