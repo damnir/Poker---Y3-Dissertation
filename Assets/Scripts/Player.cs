@@ -45,13 +45,13 @@ public class Player : NetworkBehaviour
 
     public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
         {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
+            WritePermission = NetworkVariablePermission.Everyone,
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
     public NetworkVariableString pos = new NetworkVariableString(new NetworkVariableSettings
         {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
+            WritePermission = NetworkVariablePermission.Everyone,
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
@@ -63,7 +63,7 @@ public class Player : NetworkBehaviour
 
     public NetworkVariableInt currentSeat = new NetworkVariableInt(new NetworkVariableSettings
         {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
+            WritePermission = NetworkVariablePermission.Everyone,
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
@@ -313,14 +313,6 @@ public class Player : NetworkBehaviour
 
     public void resetState()
     {
-        end.Value = false;
-        betState.Value = BetState.Fold;
-        isTurn.Value = false;
-        folded.Value = true;
-        currentBet.Value = 0;
-        currentSeat.Value = 0;
-        pos.Value = "";
-        Position.Value = new Vector3(0, 0, 0);
     }
 
     public void updateCash(int newCash)
@@ -499,7 +491,6 @@ public class Player : NetworkBehaviour
         {
             currentLobby.Value.GetComponent<DataManager>().clientDisconnectServerRpc(OwnerClientId);
         }
-        resetState();
             //Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
             //currentSeat.Value = 0;
             //pos.Value = "PlayerPlaceHolder";
@@ -510,6 +501,8 @@ public class Player : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void leaveLobbyServerRpc()
     {
+        resetState();
+
         currentLobby.Value.GetComponent<DataManager>().addPlayerPL(OwnerClientId);
         leaveLobbyClientRpc();
     }

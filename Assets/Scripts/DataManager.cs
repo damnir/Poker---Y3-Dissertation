@@ -272,7 +272,10 @@ public class DataManager : NetworkBehaviour
                 playerOrder.Remove(id);
                 playerOrderRe.Remove(id);
                 playerIds.Remove(id);
-                LoginManager.instance.clientDisconnect(id);
+                if(GetPlayerNetworkObject(id) == null)
+                {
+                    LoginManager.instance.clientDisconnect(id);
+                }
             }
 
         }
@@ -289,7 +292,7 @@ public class DataManager : NetworkBehaviour
     }
 
     public void updateClientParams() {
-        clientRpcParams.Send.TargetClientIds = new ulong[playerIds.Count];
+        clientRpcParams.Send = new ClientRpcSendParams{ TargetClientIds = new ulong[playerIds.Count]};
 
         for(int i = 0; i < playerIds.Count; i++)
         {
