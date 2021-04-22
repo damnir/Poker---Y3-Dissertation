@@ -443,6 +443,7 @@ public class DataManager : NetworkBehaviour
 
     public void deal () {
         game.clearGame(); //GAME DB REPLAY
+        Array.Clear(riverCards, 0, 5);
         updateHandRankTextClientRpc("", clientRpcParams);
         generateDeck();
         shuffleDeck();
@@ -639,7 +640,44 @@ public class DataManager : NetworkBehaviour
         players.Add(GetPlayerNetworkObject(id).gameObject);
         playerIds.Add(id);
         Debug.Log("Added player [ServerRpc]: Client ID: " + id);
-        playerNum++;   
+        playerNum++;
+        foreach(string cc in riverCards)
+        {
+            Debug.Log("Card: " + cc);
+        }
+
+        SyncPreviousClientRpc(riverCards, new ClientRpcParams {
+            Send = new ClientRpcSendParams {
+                    TargetClientIds = new ulong[]{id}
+                }
+            }
+        );
+    }
+
+    [ClientRpc]
+    public void SyncPreviousClientRpc(string[] rCards, ClientRpcParams clientRpcParams = default)
+    {
+        for(int i = 0; i < rCards.Length; i++)
+        {
+            Debug.Log("Card: " + rCards[i]);
+            try {
+            if(rCards[i].Equals(null) || rCards[i] == "")
+            {
+                river[i].SetActive(false);
+                Debug.Log("CARD IS POO");
+                return;
+            }
+            else
+            {
+                GameObject card = river[i];
+                card.SetActive(true);
+                Image cardImage = card.GetComponent<Image>();
+                cardImage.sprite = Resources.Load<Sprite>("Cards/" + rCards[i]);
+                pot.GetComponent<Text>().text = "$"+mainPot.Value.ToString();                
+            }
+        }catch(NullReferenceException e) { return;}
+
+        }
     }
 
     public void addPlayer(GameObject player) {
