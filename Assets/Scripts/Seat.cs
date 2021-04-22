@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using MLAPI;
+using static MLAPI.Spawning.NetworkSpawnManager;
+
 
 public class Seat : MonoBehaviour
 {
@@ -28,7 +30,8 @@ public class Seat : MonoBehaviour
     }
 
     public void sit() {
-        GameObject player = lobbyManager.getPlayerGoById(NetworkManager.Singleton.LocalClientId);
+        GameObject player = GetLocalPlayerObject().gameObject;
         player.GetComponent<Player>().sit(this.gameObject.name);
+
     }
 }

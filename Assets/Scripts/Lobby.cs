@@ -12,6 +12,8 @@ using System.IO;
 using MLAPI.NetworkVariable;
 using System;
 using UnityEngine.UI;
+using static MLAPI.Spawning.NetworkSpawnManager;
+
 
 public class Lobby : NetworkBehaviour
 {
@@ -42,8 +44,9 @@ public class Lobby : NetworkBehaviour
 
     public void onClick() {
         if(IsClient) {
+            
             GameObject.Find("Menu").SetActive(false);
-
+            /*
             GameObject player = lobbyManager.getPlayerGoById(NetworkManager.Singleton.LocalClientId);
             player.GetComponent<Player>().changeLobby(lobby);
 
@@ -53,7 +56,10 @@ public class Lobby : NetworkBehaviour
                 {
                     room.SetActive(false);
                 }
-            }
+            }*/
+
+            GetLocalPlayerObject().GetComponent<Player>().changeLobby(lobby);
+
         }
     }
 

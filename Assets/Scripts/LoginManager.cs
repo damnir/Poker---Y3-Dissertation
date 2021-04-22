@@ -875,11 +875,11 @@ private IEnumerator UpdateFriendRequests(string _id)
     public void sendInviteClientRpc(string lobbyName, string username, string id, ClientRpcParams clientRpcParams = default)
     {
         Debug.Log("Game Invite received - lobby: " + lobbyName + " username: " + username);
-        GameObject newInvite = Instantiate(gameInviteGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
-        newInvite.transform.SetParent(GetLocalPlayerObject().transform, false);
-        newInvite.transform.position = GameObject.Find("GameInvitePlaceholder").transform.position;
-        newInvite.GetComponent<GameInvite>().setValues(username, lobbyName);
-
+        //GameObject newInvite = Instantiate(gameInviteGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
+        //newInvite.transform.SetParent(GetLocalPlayerObject().transform, false);
+        //newInvite.transform.position = GameObject.Find("GameInvitePlaceholder").transform.position;
+        //newInvite.GetComponent<GameInvite>().setValues(username, lobbyName);
+        GetLocalPlayerObject().GetComponent<Player>().gameInvite(lobbyName, username);
        // GetLocalPlayerObject().gameObject.SetActive(false);
     }
     public void SendGameInvite(GameObject _lobby, string senderUsername, string targetId)

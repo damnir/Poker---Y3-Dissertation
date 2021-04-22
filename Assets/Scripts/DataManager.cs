@@ -589,6 +589,14 @@ public class DataManager : NetworkBehaviour
         playerNum++; 
     }
 
+    public void addPlayerPL(ulong id)
+    {
+        players.Add(GetPlayerNetworkObject(id).gameObject);
+        playerIds.Add(id);
+        Debug.Log("Added player [ServerRpc]: Client ID: " + id);
+        playerNum++;   
+    }
+
     public void addPlayer(GameObject player) {
         if(IsServer) {
             players.Add(player);

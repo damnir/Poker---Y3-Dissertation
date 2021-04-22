@@ -31,6 +31,7 @@ public class ButtonManager : NetworkBehaviour
     public GameObject loginScreen;
     public GameObject friendsList;
     public GameObject friendsListInGame;
+    public GameObject loadingScreen;
 
     void Start() {
         //NetworkManager.Singleton.StartServer();
@@ -152,6 +153,17 @@ public class ButtonManager : NetworkBehaviour
             LoginManager.instance.UpdateFriendsListIg(GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().netId.Value);
             friendsListInGame.SetActive(true);
         }
+    }
+
+    public void setLoadingScreen()
+    {
+        if(loadingScreen.active)
+        {
+            loadingScreen.SetActive(false);
+        }
+        else{
+            loadingScreen.SetActive(true);
+        }  
     }
 
 

@@ -553,7 +553,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inviteText: {fileID: 7487121491243422762}
   lobbyText: {fileID: 2844735263453444991}
-  newLobby: {fileID: 0}
 --- !u!1 &8159700327045612104
 GameObject:
   m_ObjectHideFlags: 0

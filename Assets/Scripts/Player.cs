@@ -57,7 +57,7 @@ public class Player : NetworkBehaviour
 
     public NetworkVariable<GameObject> currentLobby = new NetworkVariable<GameObject>(new NetworkVariableSettings
         {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
+            WritePermission = NetworkVariablePermission.Everyone,
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
@@ -139,6 +139,7 @@ public class Player : NetworkBehaviour
     public GameObject ownerGo;
     public GameObject win;
     public GameObject dbManager;
+    public GameObject GameInvite;
 
     GameObject text;
 
@@ -172,7 +173,7 @@ public class Player : NetworkBehaviour
         
         transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
   
-            this.transform.SetParent(GameObject.Find("Menu").transform, false);
+            //this.transform.SetParent(GameObject.Find("Menu").transform, false);
             this.transform.position = GameObject.Find("PlayerPlaceHolder").transform.position;
         
 
@@ -185,12 +186,19 @@ public class Player : NetworkBehaviour
     void Update()
     {   
         try {
+                    if(pos.Value != null)
+        {
             this.transform.position = GameObject.Find(pos.Value).transform.position; 
-            this.transform.SetParent(currentLobby.Value.transform);
-            this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        }
             //this.transform = GameObject.Find(pos.Value).transform;
             lobbyBet = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
         }catch(NullReferenceException e) { }
+
+        if(currentLobby.Value != null)
+        {
+            this.transform.SetParent(currentLobby.Value.transform);
+            this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        }
 
         try {
             if(IsOwner)
@@ -330,10 +338,54 @@ public class Player : NetworkBehaviour
 
     public void changeLobby(GameObject lobby) 
     {
-        lobby.GetComponent<DataManager>().addPlayerServerRpc(OwnerClientId);
         currentLobby.Value = lobby;
-        this.transform.SetParent(lobby.transform);
-        this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        this.transform.SetParent(lobby.transform, false);
+        //this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        //lobby.GetComponent<DataManager>().addPlayerServerRpc(OwnerClientId);
+        //changeLobbyServerRpc(lobby.name, OwnerClientId);
+        Lobbies lobbyManager = GameObject.Find("Lobbies").GetComponent<Lobbies>();
+
+        foreach(GameObject room in lobbyManager.lobbies)
+        {
+            if(room.name != lobby.name)
+            {
+                room.SetActive(false);
+                Debug.Log("Hidden rooms: "+room.name);
+            }
+ 
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void changeLobbyServerRpc(string lobbyName, ulong senderId) 
+    {
+        //currentLobby.Value.GetComponent<DataManager>().addPlayerPL(senderId);
+        //lobby.GetComponent<DataManager>().addPlayerPL(OwnerClientId);
+        Lobbies lobbyManager = GameObject.Find("Lobbies").GetComponent<Lobbies>();
+
+        foreach(GameObject room in lobbyManager.lobbies)
+        {
+            if(!room.GetComponent<NetworkObject>().IsNetworkVisibleTo(senderId))
+                {
+                    room.GetComponent<NetworkObject>().NetworkShow(senderId);
+                }
+            if(room.name == lobbyName)
+            {
+                currentLobby.Value = room;
+                Debug.Log("FOund room: " + room.name);
+            }
+        }
+
+
+        foreach(GameObject room in lobbyManager.lobbies)
+        {
+            if(room.name != lobbyName)
+            {
+                room.GetComponent<NetworkObject>().NetworkHide(senderId);
+                Debug.Log("Hidden rooms: "+room.name);
+            }
+ 
+        }
     }
 
     //---------------------------------------------------------------
@@ -416,6 +468,80 @@ public class Player : NetworkBehaviour
         cash.Value += wcash;
         betState.Value = BetState.Win;
         dbUpdateCash();
+    }
+
+    public void gameInvite(string lobbyName, string username)
+    {
+        GameInvite.GetComponent<GameInvite>().setValues(username, lobbyName);
+        GameInvite.transform.position = GameObject.Find("GameInvitePlaceholder").transform.position;
+        GameInvite.SetActive(true);
+    }
+
+    public void acceptInvite(string lobbyName)
+    {
+            //Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
+            //currentSeat.Value = 0;
+            //pos.Value = "PlayerPlaceHolder";
+        StartCoroutine(poo(lobbyName));
+
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void leaveLobbyServerRpc()
+    {
+        currentLobby.Value.GetComponent<DataManager>().addPlayerPL(OwnerClientId);
+        leaveLobbyClientRpc();
+    }
+
+    [ClientRpc]
+    public void leaveLobbyClientRpc()
+    {
+        this.transform.SetParent(GameObject.Find("Lobbies").transform);
+        this.transform.SetParent(currentLobby.Value.transform);
+    }
+
+    public IEnumerator poo(string lobbyName)
+    {
+        ButtonManager bm = GameObject.Find("ButtonManager").GetComponent<ButtonManager>();
+        bm.setLoadingScreen();
+        //changeLobbyServerRpc(lobbyName, OwnerClientId);
+        this.transform.SetParent(GameObject.Find("Lobbies").transform);
+                        currentLobby.Value = GameObject.Find("Lobbies");
+
+
+
+        Lobbies lobbyManager = GameObject.Find("Lobbies").GetComponent<Lobbies>();
+
+        foreach(GameObject room in lobbyManager.lobbies)
+        {
+            if(!room.active)
+            {
+                room.SetActive(true);
+            }
+            if(room.name == lobbyName)
+            {
+                currentLobby.Value = room;
+                Debug.Log("FOund room: " + room.name);
+            }
+        }
+
+
+        yield return new WaitForSeconds(3);
+        bm.setLoadingScreen();
+
+
+        foreach(GameObject room in lobbyManager.lobbies)
+        {
+            if(room.name != lobbyName)
+            {
+                room.SetActive(false);
+            }
+ 
+        }
+        leaveLobbyServerRpc();
+
+
+
     }
 
     void dbUpdateCash()
