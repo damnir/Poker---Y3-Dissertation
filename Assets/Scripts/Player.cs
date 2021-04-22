@@ -24,7 +24,7 @@ public class Player : NetworkBehaviour
         Win
     }
 
-    enum GameState
+    public enum GameState
     {
         Menu,
         Spec,
@@ -134,6 +134,12 @@ public class Player : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
+    public NetworkVariable<GameState> gameState = new NetworkVariable<GameState>(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
 
     public ulong lobbyBet;
 
@@ -176,6 +182,7 @@ public class Player : NetworkBehaviour
         }
 
         GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject);
+        this.transform.SetParent(GameObject.Find("Lobbies").transform);
         
         transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
   
@@ -309,6 +316,13 @@ public class Player : NetworkBehaviour
             card1.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
             card2.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
         }
+        if(currentLobby.Value == null)
+        {
+            gameState.Value = GameState.Menu;
+        }
+        else{
+            gameState.Value = GameState.Ingame;
+        }
     }
 
     public void resetState()
@@ -362,38 +376,6 @@ public class Player : NetworkBehaviour
     public void changeLobby(GameObject lobby) 
     {
         acceptInvite(lobby.name);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    public void changeLobbyServerRpc(string lobbyName, ulong senderId) 
-    {
-        //currentLobby.Value.GetComponent<DataManager>().addPlayerPL(senderId);
-        //lobby.GetComponent<DataManager>().addPlayerPL(OwnerClientId);
-        Lobbies lobbyManager = GameObject.Find("Lobbies").GetComponent<Lobbies>();
-
-        foreach(GameObject room in lobbyManager.lobbies)
-        {
-            if(!room.GetComponent<NetworkObject>().IsNetworkVisibleTo(senderId))
-                {
-                    room.GetComponent<NetworkObject>().NetworkShow(senderId);
-                }
-            if(room.name == lobbyName)
-            {
-                currentLobby.Value = room;
-                Debug.Log("FOund room: " + room.name);
-            }
-        }
-
-
-        foreach(GameObject room in lobbyManager.lobbies)
-        {
-            if(room.name != lobbyName)
-            {
-                room.GetComponent<NetworkObject>().NetworkHide(senderId);
-                Debug.Log("Hidden rooms: "+room.name);
-            }
- 
-        }
     }
 
     //---------------------------------------------------------------

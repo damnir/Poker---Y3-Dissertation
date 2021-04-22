@@ -424,47 +424,6 @@ public class LoginManager : NetworkBehaviour
         }
     }
 
-    /*
-    private IEnumerator LoadScoreboardData()
-    {
-        //Get all the users data ordered by kills amount
-        var DBTask = DBreference.Child("users").OrderByChild("kills").GetValueAsync();
-
-        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
-
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            //Data has been retrieved
-            DataSnapshot snapshot = DBTask.Result;
-
-            //Destroy any existing scoreboard elements
-            foreach (Transform child in scoreboardContent.transform)
-            {
-                Destroy(child.gameObject);
-            }
-
-            //Loop through every users UID
-            foreach (DataSnapshot childSnapshot in snapshot.Children.Reverse<DataSnapshot>())
-            {
-                string username = childSnapshot.Child("username").Value.ToString();
-                int kills = int.Parse(childSnapshot.Child("kills").Value.ToString());
-                int deaths = int.Parse(childSnapshot.Child("deaths").Value.ToString());
-                int xp = int.Parse(childSnapshot.Child("xp").Value.ToString());
-
-                //Instantiate new scoreboard elements
-                GameObject scoreboardElement = Instantiate(scoreElement, scoreboardContent);
-                //////scoreboardElement.GetComponent<ScoreElement>().NewScoreElement(username, kills, deaths, xp);
-            }
-
-            //Go to scoareboard screen
-            ///////ButtonManager.instance.ScoreboardScreen();
-        }
-    }*/
-
     public IEnumerator UpdateCashClient(string id, int _cash)
     {
         //Set the currently logged in user deaths
@@ -875,12 +834,7 @@ private IEnumerator UpdateFriendRequests(string _id)
     public void sendInviteClientRpc(string lobbyName, string username, string id, ClientRpcParams clientRpcParams = default)
     {
         Debug.Log("Game Invite received - lobby: " + lobbyName + " username: " + username);
-        //GameObject newInvite = Instantiate(gameInviteGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
-        //newInvite.transform.SetParent(GetLocalPlayerObject().transform, false);
-        //newInvite.transform.position = GameObject.Find("GameInvitePlaceholder").transform.position;
-        //newInvite.GetComponent<GameInvite>().setValues(username, lobbyName);
         GetLocalPlayerObject().GetComponent<Player>().gameInvite(lobbyName, username);
-       // GetLocalPlayerObject().gameObject.SetActive(false);
     }
     public void SendGameInvite(GameObject _lobby, string senderUsername, string targetId)
     {
@@ -906,8 +860,6 @@ private IEnumerator UpdateFriendRequests(string _id)
         StartCoroutine(UpdateFriendRequests(_senderId));
         StartCoroutine(UpdateFriendsList(_senderId));
     }
-
-
 
     public void onSearchClick()
     {

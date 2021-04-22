@@ -276,6 +276,8 @@ public class DataManager : NetworkBehaviour
                 {
                     LoginManager.instance.clientDisconnect(id);
                 }
+                updateClientParams();
+                endTurnClientRpc(playerIds[0], clientRpcParams);
             }
 
         }

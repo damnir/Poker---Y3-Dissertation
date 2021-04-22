@@ -11,50 +11,36 @@ public class GameInvite : MonoBehaviour
 {
     public TMP_Text inviteText;
     public TMP_Text lobbyText;
-    //public GameObject newLobby;
-    /*
-    public NetworkVariable<GameObject> newLobby = new NetworkVariable<GameObject>(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone,
-            ReadPermission = NetworkVariablePermission.Everyone
-        });*/
 
     public string lobby;
 
     Lobbies lobbyManager;
+    Player player;
 
     void Start()
     {
         lobbyManager = GameObject.Find("Lobbies").GetComponent<Lobbies>();
+        player = this.GetComponentInParent<Player>();
+        if(player.gameState.Value == Player.GameState.Menu)
+        {
+            this.transform.SetParent(GameObject.Find("Menu").transform);
+        }
+        
     }
     public void onAcceptClick()
     {
+        this.transform.SetParent(player.gameObject.transform);
+
         GetLocalPlayerObject().GetComponent<Player>().acceptInvite(lobby);
         this.gameObject.SetActive(false);
+        GameObject.Find("Menu").SetActive(false);
         //Destroy(this.gameObject);
-
     }
-
-/*
-    [ServerRpc(RequireOwnership = false)]
-    public void setLobbyServerRpc(string _lobby)
-    {
-        lobbyManager = GameObject.Find("Lobbies").GetComponent<Lobbies>();
-        
-        foreach(GameObject lobby in lobbyManager.lobbies)
-        {
-            if (lobby.name == _lobby)
-            {
-                newLobby.Value = lobby;
-                Debug.Log("LOBBY FOUND");
-                break;
-            }
-        }
-    }*/
 
     public void onDeclineClick()
     {
         this.gameObject.SetActive(false);
+
     }
 
     public void setValues(string _username, string _lobby)
