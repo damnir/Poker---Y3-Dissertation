@@ -309,8 +309,18 @@ public class Player : NetworkBehaviour
             card1.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
             card2.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
         }
+    }
 
-
+    public void resetState()
+    {
+        end.Value = false;
+        betState.Value = BetState.Fold;
+        isTurn.Value = false;
+        folded.Value = true;
+        currentBet.Value = 0;
+        currentSeat.Value = 0;
+        pos.Value = "";
+        Position.Value = new Vector3(0, 0, 0);
     }
 
     public void updateCash(int newCash)
@@ -485,6 +495,11 @@ public class Player : NetworkBehaviour
 
     public void acceptInvite(string lobbyName)
     {
+        if(currentLobby.Value != null)
+        {
+            currentLobby.Value.GetComponent<DataManager>().clientDisconnectServerRpc(OwnerClientId);
+        }
+        resetState();
             //Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
             //currentSeat.Value = 0;
             //pos.Value = "PlayerPlaceHolder";

@@ -11,6 +11,8 @@ using System;
 using static System.Exception;
 using static MLAPI.Spawning.NetworkSpawnManager;
 using System.Linq;
+using TMPro;
+
 
 public class DataManager : NetworkBehaviour
 {
@@ -62,6 +64,7 @@ public class DataManager : NetworkBehaviour
         public int rank; //1# royal flush, 2# straight flush, 3# four of a kind, 4# full house, #5 flush, #6 straight, #7 three of a kind, #8 two pair, #9 pair, #10 high card
         public int strength; //2-14 (2-A)
         public ulong pId;
+        public string text;
     }
 
     public List<Hand> playerHands = new List<Hand>();
@@ -111,6 +114,8 @@ public class DataManager : NetworkBehaviour
 
     public GameObject buttons;
     public GameObject pot;
+    public TMP_Text handRankText;
+
     public bool actionTaken = false;
 
     void Start()
@@ -273,6 +278,12 @@ public class DataManager : NetworkBehaviour
         }
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    public void clientDisconnectServerRpc(ulong _id)
+    {
+        clientDisconnect(_id);
+    }
+
     public int getPlayerNum() {
         return playerNum;
     }
@@ -381,6 +392,15 @@ public class DataManager : NetworkBehaviour
     }
 
     [ClientRpc]
+    public void updateHandRankTextClientRpc(string text, ClientRpcParams clientRpcParams)
+    {
+        handRankText.text = text;
+        Debug.Log("UPDATE ON CLIENT CALLED");
+        Debug.Log("Hand rnak text : " + handRankText.text);
+        Debug.Log("String: " + text);
+    }
+
+    [ClientRpc]
     public void nextTurnClientRpc(ulong id) {
         if(id == NetworkManager.Singleton.LocalClientId) {
             buttons.SetActive(true);
@@ -423,8 +443,9 @@ public class DataManager : NetworkBehaviour
 
     public void deal () {
         game.clearGame(); //GAME DB REPLAY
-
+        updateHandRankTextClientRpc("", clientRpcParams);
         generateDeck();
+        shuffleDeck();
 
         previousBet.Value = 0;
         endStageClientRpc(clientRpcParams);
@@ -533,16 +554,17 @@ public class DataManager : NetworkBehaviour
         Rank rank = evaluateHand(cards);
         Hand hand = evaluateRank(rank);
 
-        addHandServerRpc(hand.pId, hand.rank, hand.strength);
+        addHandServerRpc(hand.pId, hand.rank, hand.strength, hand.text);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void addHandServerRpc(ulong id, int rank, int strength)
+    public void addHandServerRpc(ulong id, int rank, int strength, string ranktext)
     {
         Hand newHand = new Hand();
         newHand.pId = id;
         newHand.rank = rank;
         newHand.strength = strength;
+        newHand.text = ranktext;
         playerHands.Add(newHand);
     }
     
@@ -853,51 +875,62 @@ public class DataManager : NetworkBehaviour
     public Hand evaluateRank(Rank rank)
     {
         Hand hand = new Hand();
+        string handText;
         if(rank.straightflush != 0)
         {
+            hand.text = "straight flush";
             hand.rank = 2;
             hand.strength = rank.straightflush;
         }
         else if(rank.fourof != 0)
         {
+            hand.text = "four of a kind";
             hand.rank = 3;
             hand.strength = rank.fourof;
         }
         else if(rank.fullhouse != 0)
         {
+            hand.text = "full house";
             hand.rank = 4;
             hand.strength = rank.fullhouse;
         }
         else if(rank.flush != 0)
         {
+            hand.text = "flush";
             hand.rank = 5;
             hand.strength = rank.flush;
         }
         else if(rank.straight != 0)
         {
+            hand.text = "straight";
             hand.rank = 6;
             hand.strength = rank.straight;
         }
         else if(rank.threeofV != 0)
         {
+            hand.text = "three of a kind";
             hand.rank = 7;
             hand.strength = rank.threeofV;
         }
         else if(rank.pairsV != 0)
         {
+            hand.text = "two pairs";
             hand.rank = 8;
             hand.strength = rank.pairsV;
         }
         else if(rank.singlePairInt != 0)
         {
+            hand.text = "single pair";
             hand.rank = 9;
             hand.strength = rank.singlePairInt;
         }
         else
         {
+            hand.text = "high card";
             hand.rank = 10;
             hand.strength = rank.highCard;
         }
+        //handRankText.text = handText; dajspkidj alksjd oalskjdoasid jaosdj aios jdoi
 
         hand.pId = NetworkManager.Singleton.LocalClientId;
         return hand;
@@ -939,6 +972,8 @@ public class DataManager : NetworkBehaviour
 
     public void announceWinner(List<Hand> winners)
     {
+        updateClientParams();
+        updateHandRankTextClientRpc(winners[0].text, clientRpcParams);
         
         int count = winners.Count;
         ulong win;
