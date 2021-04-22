@@ -200,6 +200,7 @@ public class DataManager : NetworkBehaviour
                 {
  
                     case Stage.Deal:
+                        hideCards();
                         deal();
 
                         prevStage = currentStage;
@@ -214,6 +215,8 @@ public class DataManager : NetworkBehaviour
                         break;
                     
                     case Stage.Showdown:
+                        flipCards();
+
                         determineWinner();
                         pushNewRound(); //DB GAME REPLAY
                         playerHands.Clear();
@@ -229,6 +232,7 @@ public class DataManager : NetworkBehaviour
                         break;
 
                     case Stage.Forcewin:
+                        flipCards();
                         prevStage = currentStage;
                         currentStage = Stage.Deal;
                         break;
@@ -334,6 +338,24 @@ public class DataManager : NetworkBehaviour
         }
     }
 
+    public void flipCards()
+    {
+        foreach(GameObject player in players)
+        {
+            Player _player = player.GetComponent<Player>();
+            _player.end.Value = true;
+        }
+    }
+
+    public void hideCards()
+    {
+        foreach(GameObject player in players)
+        {
+            Player _player = player.GetComponent<Player>();
+            _player.end.Value = false;
+        }
+    }
+
     [ClientRpc]
     public void forceFoldClientRpc(ulong id)
     {
@@ -422,6 +444,7 @@ public class DataManager : NetworkBehaviour
             game.addPlayer(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, card1 + "-" + card2);
 
             GetPlayerNetworkObject(id).GetComponent<Player>().dealCards(card1, card2);
+
         }
         dealer++;
         if(dealer > 6) {

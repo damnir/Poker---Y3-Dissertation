@@ -1264,6 +1264,8 @@ MonoBehaviour:
     m_InternalValue: 
   username:
     m_InternalValue: 
+  end:
+    m_InternalValue: 0
   lobbyBet: 0
   foldGo: {fileID: 1621200923080856732}
   card1: {fileID: 6697486692557642315}

@@ -128,6 +128,12 @@ public class Player : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         });
 
+    public NetworkVariableBool end = new NetworkVariableBool(new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+            ReadPermission = NetworkVariablePermission.Everyone
+        });
+
 
     public ulong lobbyBet;
 
@@ -289,6 +295,21 @@ public class Player : NetworkBehaviour
             card2.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + card2v.Value);
         }
 
+        if(!IsOwner && betState.Value != BetState.Fold && end.Value)
+        {
+            card1.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + card1v.Value);
+            card2.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + card2v.Value);
+            card1.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
+            card2.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
+        }
+        else if (!IsOwner && betState.Value != BetState.Fold && !end.Value)
+        {
+            card1.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/Back");
+            card2.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/Back");  
+            card1.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+            card2.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        }
+
 
     }
 
@@ -338,22 +359,7 @@ public class Player : NetworkBehaviour
 
     public void changeLobby(GameObject lobby) 
     {
-        currentLobby.Value = lobby;
-        this.transform.SetParent(lobby.transform, false);
-        //this.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-        //lobby.GetComponent<DataManager>().addPlayerServerRpc(OwnerClientId);
-        //changeLobbyServerRpc(lobby.name, OwnerClientId);
-        Lobbies lobbyManager = GameObject.Find("Lobbies").GetComponent<Lobbies>();
-
-        foreach(GameObject room in lobbyManager.lobbies)
-        {
-            if(room.name != lobby.name)
-            {
-                room.SetActive(false);
-                Debug.Log("Hidden rooms: "+room.name);
-            }
- 
-        }
+        acceptInvite(lobby.name);
     }
 
     [ServerRpc(RequireOwnership = false)]
