@@ -150,6 +150,7 @@ public class ButtonManager : NetworkBehaviour
             friendsList.SetActive(false);
         }
         else{
+            LoginManager.instance.UpdateFriends(GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().netId.Value);
             friendsList.SetActive(true);
         }
     }

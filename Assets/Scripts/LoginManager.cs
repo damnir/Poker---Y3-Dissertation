@@ -495,6 +495,13 @@ public class LoginManager : NetworkBehaviour
         }
     }
 
+    public void quickAdd(string _username, string _id, string targetId)
+    {
+        Friend friend = new Friend(_username, _id);
+
+        StartCoroutine(sendFriendRequest(targetId, friend));
+    }
+
     public IEnumerator addFriend(string _username)
     {
         var DBTask = DBreference.Child("users").GetValueAsync();
@@ -682,6 +689,13 @@ private IEnumerator UpdateFriendRequests(string _id)
         }
     }
 
+    public void UpdateFriends(string _id)
+    {
+        StartCoroutine(UpdateFriendRequests(_id));
+        StartCoroutine(UpdateFriendsList(_id));
+
+    }
+
     public void UpdateFriendsListIg(string _senderId)
     {
         StartCoroutine(UpdateFriendsListInGame(_senderId));
@@ -843,7 +857,7 @@ private IEnumerator UpdateFriendRequests(string _id)
         }
         
         GameObject profile = Instantiate(profileGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
-        profile.GetComponent<ViewProfile>().setValues(snapshot.Child("username").Value.ToString(), snapshot.Child("cash").Value.ToString(), "10", "34", "12", "$32897483", isFriend);
+        profile.GetComponent<ViewProfile>().setValues(snapshot.Child("username").Value.ToString(), snapshot.Child("cash").Value.ToString(), "10", "34", "12", "$32897483", isFriend, _id);
         if(parent == "Menu")
         {
             profile.transform.SetParent(GameObject.Find(parent).transform, false);
