@@ -966,15 +966,9 @@ public class DataManager : NetworkBehaviour
         }
         //check if new best hand DB
 
-
         return rank;
     }
-
-    public void checkIfBestHand()
-    {
-        
-    }
-    
+ 
 
 //1# royal flush, 2# straight flush, 3# four of a kind, 4# full house, #5 flush, #6 straight, #7 three of a kind, #8 two pair, #9 pair, #10 high card
     public Hand evaluateRank(Rank rank)

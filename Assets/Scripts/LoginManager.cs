@@ -47,6 +47,7 @@ public class LoginManager : NetworkBehaviour
     public GameObject friendIgGo;
     public GameObject friendsListInGameGo;
     public GameObject gameInviteGo;
+    public GameObject profileGo;
 
 
     void Awake()
@@ -811,6 +812,26 @@ private IEnumerator UpdateFriendRequests(string _id)
                 sendInviteServerRpc(_lobbyName, _username, dataSnapshot.Child("ClientID").Value.ToString());
             }
         }
+
+    }
+
+    public void showProfileClient(string _id, string senderId)
+    {
+        StartCoroutine(ShowProfile(_id, senderId));
+    }
+
+    public IEnumerator ShowProfile(string _id, string senderId)
+    {
+        var DBTask = DBreference.Child("users").Child(_id).GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);  
+
+        DataSnapshot snapshot = DBTask.Result;
+        bool isFriend;
+        
+        GameObject profile = Instantiate(profileGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
+        profile.GetComponent<ViewProfile>().setValues(snapshot.Child("username").Value.ToString(), snapshot.Child("cash").Value.ToString(), "10", "34", "12", "$32897483", false);
+        profile.transform.SetParent(GameObject.Find("Menu").transform, false);
 
     }
 

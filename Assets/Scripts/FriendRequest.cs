@@ -27,4 +27,9 @@ public class FriendRequest : MonoBehaviour
         //StartCoroutine(LoginManager.instance.acceptFriendRequest(netId, username));
         Destroy(this);
     }
+
+    public void onViewClick()
+    {
+        LoginManager.instance.showProfileClient(netId, GetLocalPlayerObject().GetComponent<Player>().netId.Value);
+    }
 }
