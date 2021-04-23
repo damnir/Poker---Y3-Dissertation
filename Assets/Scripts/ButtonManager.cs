@@ -36,6 +36,13 @@ public class ButtonManager : NetworkBehaviour
     public GameObject sitUpButton;
     public GameObject leaveButton;
     public GameObject menu;
+    public GameObject chatBox;
+    public GameObject messageBox;
+    public GameObject messageGo;
+    public TMP_InputField messageInput;
+    public GameObject bing;
+
+
 
     void Start() {
         //NetworkManager.Singleton.StartServer();
@@ -198,6 +205,41 @@ public class ButtonManager : NetworkBehaviour
         Player player = GetLocalPlayerObject().GetComponent<Player>();
         //GetLocalPlayerObject().GetComponent<Player>().changeLobby(lobby);
         player.currentLobby.Value = null;
+    }
+
+    public void onChatClick()
+    {
+        if(chatBox.active)
+        {
+            chatBox.SetActive(false);
+        }
+        else{
+            bing.SetActive(false);
+            chatBox.SetActive(true);
+            //updateMessages();
+        }  
+    }
+
+    public void onMessageSendClick()
+    {
+        if(messageInput.text == "")
+        {
+            return;
+        }
+
+        DataManager lobbyData = GetLocalPlayerObject().GetComponent<Player>().currentLobby.Value.GetComponent<DataManager>();
+        lobbyData.messages.Add(GetLocalPlayerObject().GetComponent<Player>().username.Value + ": " + messageInput.text);
+        messageInput.text = "";
+    }
+
+    public void updateMessages(string message)
+    {
+
+        GameObject newMessage = Instantiate(messageGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
+        newMessage.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = message;
+        newMessage.transform.SetParent(messageBox.transform, false);
+        bing.SetActive(true);
+
     }
 
 

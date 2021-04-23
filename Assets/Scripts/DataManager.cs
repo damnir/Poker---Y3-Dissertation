@@ -110,6 +110,12 @@ public class DataManager : NetworkBehaviour
         ReadPermission = NetworkVariablePermission.Everyone
     });
 
+    public NetworkList<string> messages = new NetworkList<string>(new NetworkVariableSettings
+    {
+        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        ReadPermission = NetworkVariablePermission.Everyone
+    });
+
     ClientRpcParams clientRpcParams = new ClientRpcParams();
 
     public GameObject buttons;
@@ -125,17 +131,32 @@ public class DataManager : NetworkBehaviour
 
     public override void NetworkStart()
     {
+
         Debug.Log("NETWORK START - Data Manager");
         time = NetworkManager.Singleton.NetworkTime;
 
         if(IsServer) {
             generateDeck();
             shuffleDeck();
+            messages.OnListChanged += newMessage;
+
         }
 
         if(IsClient) {
             Debug.Log("Data Manager - is client");
         }
+    }
+
+    public void newMessage(NetworkListEvent<string> newMessage)
+    {
+        updateClientParams();
+        newMessageClientRpc(newMessage.Value, clientRpcParams);
+    }
+
+    [ClientRpc]
+    public void newMessageClientRpc(string _message, ClientRpcParams clientRpcParams)
+    {
+        ButtonManager.instance.updateMessages(_message);
     }
 
     // Update is called once per frame

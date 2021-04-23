@@ -207,6 +207,7 @@ public class Player : NetworkBehaviour
             lobbyBet = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
         }catch(NullReferenceException e) { }
 
+        
         if(currentLobby.Value != null)
         {
             this.transform.SetParent(currentLobby.Value.transform);
