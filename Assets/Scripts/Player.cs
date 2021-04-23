@@ -7,6 +7,8 @@ using MLAPI;
 using MLAPI.Messaging;
 using MLAPI.NetworkVariable;
 using TMPro;
+using static MLAPI.Spawning.NetworkSpawnManager;
+
 //using MLAPI.NetworkedVar;
 
 public class Player : NetworkBehaviour
@@ -570,6 +572,16 @@ public class Player : NetworkBehaviour
     void dbUpdateCash()
     {
         StartCoroutine(LoginManager.instance.UpdateCashClient(netId.Value, (int)cash.Value));
+    }
+
+    public void showProfile()
+    {
+        if(IsOwner)
+        {
+            return;
+        }
+        LoginManager.instance.showProfileClient(netId.Value, GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().netId.Value, currentLobby.Value.name);
+
     }
 
 }

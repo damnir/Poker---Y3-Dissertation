@@ -30,6 +30,12 @@ public class FriendRequest : MonoBehaviour
 
     public void onViewClick()
     {
-        LoginManager.instance.showProfileClient(netId, GetLocalPlayerObject().GetComponent<Player>().netId.Value);
+        LoginManager.instance.showProfileClient(netId, GetLocalPlayerObject().GetComponent<Player>().netId.Value, "Menu");
+    }
+
+    public void onViewClickInGame()
+    {
+        LoginManager.instance.showProfileClient(netId, GetLocalPlayerObject().GetComponent<Player>().netId.Value, GetLocalPlayerObject().GetComponent<Player>().currentLobby.Value.name);
+
     }
 }

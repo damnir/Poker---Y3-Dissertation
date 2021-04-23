@@ -815,12 +815,12 @@ private IEnumerator UpdateFriendRequests(string _id)
 
     }
 
-    public void showProfileClient(string _id, string senderId)
+    public void showProfileClient(string _id, string senderId, string parent)
     {
-        StartCoroutine(ShowProfile(_id, senderId));
+        StartCoroutine(ShowProfile(_id, senderId, parent));
     }
 
-    public IEnumerator ShowProfile(string _id, string senderId)
+    public IEnumerator ShowProfile(string _id, string senderId, string parent)
     {
         var DBTask = DBreference.Child("users").Child(_id).GetValueAsync();
 
@@ -828,12 +828,12 @@ private IEnumerator UpdateFriendRequests(string _id)
         DataSnapshot snapshot = DBTask.Result;
 
 
-        var DBTask2 = DBreference.Child("users").Child(senderId).Child("firnds").Child(_id).GetValueAsync();
+        var DBTask2 = DBreference.Child("users").Child(senderId).Child("friends").Child(_id).GetValueAsync();
 
         yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);  
          bool isFriend;
 
-        if(DBTask.Result.Value == null)
+        if(DBTask2.Result.Value == null)
         {
             isFriend = false;
         }
@@ -844,7 +844,15 @@ private IEnumerator UpdateFriendRequests(string _id)
         
         GameObject profile = Instantiate(profileGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
         profile.GetComponent<ViewProfile>().setValues(snapshot.Child("username").Value.ToString(), snapshot.Child("cash").Value.ToString(), "10", "34", "12", "$32897483", isFriend);
-        profile.transform.SetParent(GameObject.Find("Menu").transform, false);
+        if(parent == "Menu")
+        {
+            profile.transform.SetParent(GameObject.Find(parent).transform, false);
+        }
+        else
+        {
+            profile.transform.SetParent(GameObject.Find("GameInvitePlaceholder").transform, false);
+
+        }
 
     }
 
