@@ -1276,7 +1276,10 @@ MonoBehaviour:
   win: {fileID: 6872357290563571560}
   dbManager: {fileID: 0}
   GameInvite: {fileID: 1383550826226646576}
+  handRank: {fileID: 0}
+  potText: {fileID: 0}
   buttonManager: {fileID: 0}
+  clientSideRpc: 
   Channel: MLAPI_DEFAULT_MESSAGE
 --- !u!114 &6177167583812633661
 MonoBehaviour:

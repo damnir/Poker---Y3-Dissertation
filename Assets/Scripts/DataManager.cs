@@ -723,9 +723,9 @@ public class DataManager : NetworkBehaviour
                 card.SetActive(true);
                 Image cardImage = card.GetComponent<Image>();
                 cardImage.sprite = Resources.Load<Sprite>("Cards/" + rCards[i]);
-                pot.GetComponent<Text>().text = "$"+mainPot.Value.ToString();                
             }
         }
+        pot.GetComponent<Text>().text = "$"+mainPot.Value.ToString();                
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -964,9 +964,17 @@ public class DataManager : NetworkBehaviour
         {
             rank.singlePairInt = rank.pairs[0];
         }
+        //check if new best hand DB
+
 
         return rank;
     }
+
+    public void checkIfBestHand()
+    {
+        
+    }
+    
 
 //1# royal flush, 2# straight flush, 3# four of a kind, 4# full house, #5 flush, #6 straight, #7 three of a kind, #8 two pair, #9 pair, #10 high card
     public Hand evaluateRank(Rank rank)

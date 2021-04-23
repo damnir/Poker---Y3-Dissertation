@@ -214,10 +214,10 @@ public class ButtonManager : NetworkBehaviour
             chatBox.SetActive(false);
         }
         else{
-            bing.SetActive(false);
             chatBox.SetActive(true);
             //updateMessages();
         }  
+        bing.SetActive(false);
     }
 
     public void onMessageSendClick()
