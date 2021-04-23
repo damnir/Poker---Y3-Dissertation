@@ -261,7 +261,7 @@ public class DataManager : NetworkBehaviour
             Debug.Log("Client Disconnected. ID: " + id);
             //GameObject dp = players.Find(x => x.Contains.GetComponent<Player>().getPlayerID());
             if(playerIds.Contains(id)){
-                this.playerNum--;
+                playerNum--;
                 for(int i = 0; i < seatOrder.Length; i++) {
                     if(seatOrder[i] == id){
                         seatOrder[i] = 0;
@@ -277,9 +277,34 @@ public class DataManager : NetworkBehaviour
                     LoginManager.instance.clientDisconnect(id);
                 }
                 updateClientParams();
-                endTurnClientRpc(playerIds[0], clientRpcParams);
+                if(playerIds.Count < 2)
+                {
+                    endTurnClientRpc(playerIds[0], clientRpcParams);
+
+                }
             }
 
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void sitUpServerRpc(ulong id)
+    {
+        Debug.Log("sitUp called for id: " + id);
+        playerNum--;
+        int index = playerIds.FindIndex(a => a == id);
+        players.RemoveAt(index);
+        playerOrder.Remove(id);
+        playerOrderRe.Remove(id);
+        playerIds.Remove(id);
+        //updateClientParams();
+        
+        endTurnClientRpc(id, clientRpcParams);
+
+        if(playerIds.Count < 2)
+        {
+            endTurnClientRpc(playerIds[0], clientRpcParams);
+            resetBetStateClientRpc(clientRpcParams);
         }
     }
 

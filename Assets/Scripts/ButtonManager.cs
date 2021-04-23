@@ -32,6 +32,8 @@ public class ButtonManager : NetworkBehaviour
     public GameObject friendsList;
     public GameObject friendsListInGame;
     public GameObject loadingScreen;
+    public GameObject seats;
+    public GameObject sitUpButton;
 
     void Start() {
         //NetworkManager.Singleton.StartServer();
@@ -164,6 +166,26 @@ public class ButtonManager : NetworkBehaviour
         else{
             loadingScreen.SetActive(true);
         }  
+    }
+
+    public void hideSeats()
+    {
+        foreach(Transform seat in seats.transform)
+        {
+            seat.GetComponent<Image>().sprite = Resources.Load<Sprite>("blank");
+        }
+        sitUpButton.SetActive(true);
+    }
+
+    public void showSeats()
+    {
+        foreach(Transform seat in seats.transform)
+        {
+            seat.GetComponent<Image>().sprite = Resources.Load<Sprite>("emptyseat");
+        }  
+        sitUpButton.SetActive(false);
+
+        GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().sitUp();
     }
 
 

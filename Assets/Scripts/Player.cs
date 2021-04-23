@@ -383,11 +383,29 @@ public class Player : NetworkBehaviour
 
     public void sit(string name) {
         if(IsOwner) {
+            currentLobby.Value.GetComponent<DataManager>().addPlayerServerRpc(OwnerClientId);
+
             GameObject seat = GameObject.Find(name);
             Position.Value = seat.transform.position;
             currentSeat.Value = seat.GetComponent<Seat>().seatNo;
             pos.Value = name;
         }
+    }
+
+    public void sitUp()
+    {
+        if(currentLobby.Value != null)
+        {
+            currentLobby.Value.GetComponent<DataManager>().sitUpServerRpc(OwnerClientId);
+            foreach(GameObject card in currentLobby.Value.GetComponent<DataManager>().river)
+            {
+                card.SetActive(false);
+            }
+
+        }
+        Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
+        currentSeat.Value = 0;
+        pos.Value = "PlayerPlaceHolder";
     }
 
     ////GAME 
@@ -469,15 +487,13 @@ public class Player : NetworkBehaviour
 
     public void acceptInvite(string lobbyName)
     {
-        if(currentLobby.Value != null)
-        {
-            currentLobby.Value.GetComponent<DataManager>().clientDisconnectServerRpc(OwnerClientId);
-        }
+
+        //sitUp();
+        ButtonManager.instance.showSeats();
             //Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
             //currentSeat.Value = 0;
             //pos.Value = "PlayerPlaceHolder";
         StartCoroutine(poo(lobbyName));
-
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -485,7 +501,7 @@ public class Player : NetworkBehaviour
     {
         resetState();
 
-        currentLobby.Value.GetComponent<DataManager>().addPlayerPL(OwnerClientId);
+        //currentLobby.Value.GetComponent<DataManager>().addPlayerPL(OwnerClientId);
         leaveLobbyClientRpc();
     }
 

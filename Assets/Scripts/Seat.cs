@@ -32,6 +32,7 @@ public class Seat : MonoBehaviour
     public void sit() {
         GameObject player = GetLocalPlayerObject().gameObject;
         player.GetComponent<Player>().sit(this.gameObject.name);
+        ButtonManager.instance.hideSeats();
 
     }
 }
