@@ -550,7 +550,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6189474265860835393
 RectTransform:
   m_ObjectHideFlags: 0
@@ -600,7 +600,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[ Friend ]'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1287,6 +1287,7 @@ MonoBehaviour:
   TotalHandsWonText: {fileID: 6189474265222998226}
   BiggestWinText: {fileID: 6189474265072360670}
   friendText: {fileID: 6189474265860835394}
+  addButton: {fileID: 6189474266647472136}
 --- !u!1 &6189474266935797532
 GameObject:
   m_ObjectHideFlags: 0
@@ -1560,6 +1561,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 6189474266648548936}
     m_Modifications:
+    - target: {fileID: 8731126605066668465, guid: d6a630c2033ac3549936529658c53e4f,
+        type: 3}
+      propertyPath: m_text
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 8731126605066668466, guid: d6a630c2033ac3549936529658c53e4f,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1673,7 +1679,7 @@ PrefabInstance:
     - target: {fileID: 8731126605066668467, guid: d6a630c2033ac3549936529658c53e4f,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d6a630c2033ac3549936529658c53e4f, type: 3}

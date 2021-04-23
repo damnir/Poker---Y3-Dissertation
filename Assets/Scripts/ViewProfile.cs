@@ -12,6 +12,7 @@ public class ViewProfile : MonoBehaviour
     public TMP_Text TotalHandsWonText;
     public TMP_Text BiggestWinText;
     public TMP_Text friendText;
+    public GameObject addButton;
 
 
     public void setValues(string username, string cash, string xp, string totalHands, string totalWins, string biggestWin, bool friends)
@@ -24,7 +25,10 @@ public class ViewProfile : MonoBehaviour
         BiggestWinText.text = "Biggest Single Win: " +biggestWin;
         if(!friends)
         {
-
+            addButton.SetActive(true);
+        }
+        else{
+            friendText.text = "[ friends ]";
         }
     }
 
