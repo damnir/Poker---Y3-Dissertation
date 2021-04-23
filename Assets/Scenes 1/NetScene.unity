@@ -7114,6 +7114,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lobby01
       objectReference: {fileID: 0}
+    - target: {fileID: 1810063276154830070, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4114378972462074769, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
       propertyPath: AlwaysReplicateAsRoot
@@ -9274,6 +9279,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lobby02
       objectReference: {fileID: 0}
+    - target: {fileID: 1810063276154830070, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
       propertyPath: pot
@@ -10958,6 +10968,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lobby03
       objectReference: {fileID: 0}
+    - target: {fileID: 1810063276154830070, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
       propertyPath: maxPlayers
@@ -10968,6 +10983,31 @@ PrefabInstance:
       propertyPath: handRankText
       value: 
       objectReference: {fileID: 1860760256}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[0]
+      value: 
+      objectReference: {fileID: 1830262293}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[1]
+      value: 
+      objectReference: {fileID: 96183696}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[2]
+      value: 
+      objectReference: {fileID: 267417030}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[3]
+      value: 
+      objectReference: {fileID: 18689994}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[4]
+      value: 
+      objectReference: {fileID: 1703827676}
     - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
       propertyPath: seatOrder.Array.size
@@ -13801,11 +13841,41 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lobby04
       objectReference: {fileID: 0}
+    - target: {fileID: 1810063276154830070, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
       propertyPath: maxPlayers
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[0]
+      value: 
+      objectReference: {fileID: 1830262293}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[1]
+      value: 
+      objectReference: {fileID: 96183696}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[2]
+      value: 
+      objectReference: {fileID: 267417030}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[3]
+      value: 
+      objectReference: {fileID: 18689994}
+    - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
+        type: 3}
+      propertyPath: river.Array.data[4]
+      value: 
+      objectReference: {fileID: 1703827676}
     - target: {fileID: 6152052079403870995, guid: 05d6ded3c0c79d443959b28ff2666a9f,
         type: 3}
       propertyPath: seatOrder.Array.size
@@ -15447,7 +15517,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1697498729
 MonoBehaviour:
   m_ObjectHideFlags: 0

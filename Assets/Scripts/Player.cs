@@ -152,12 +152,15 @@ public class Player : NetworkBehaviour
     public GameObject win;
     public GameObject dbManager;
     public GameObject GameInvite;
+    public TMP_Text handRank;
+    public Text potText;
 
     GameObject text;
 
     public GameObject buttonManager;
 
 
+    public ulong[] clientSideRpc;
 
     public string Channel = "MLAPI_DEFAULT_MESSAGE";
 
@@ -179,6 +182,8 @@ public class Player : NetworkBehaviour
             t2.text = "Client ID: " + OwnerClientId;
             ownerGo.SetActive(true);
             betState.Value = BetState.Fold;
+            clientSideRpc = new ulong[]{NetworkManager.Singleton.LocalClientId };
+
         }
 
         GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject);
@@ -198,6 +203,11 @@ public class Player : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {   
+        if(IsOwner && currentLobby.Value != null)
+        {
+            currentLobby.Value.GetComponent<DataManager>().SyncObjectsServerRpc(clientSideRpc);
+        }
+
         try {
                     if(pos.Value != null)
         {
@@ -398,15 +408,18 @@ public class Player : NetworkBehaviour
         if(currentLobby.Value != null)
         {
             currentLobby.Value.GetComponent<DataManager>().sitUpServerRpc(OwnerClientId);
-            foreach(GameObject card in currentLobby.Value.GetComponent<DataManager>().river)
-            {
-                card.SetActive(false);
-            }
+            // foreach(GameObject card in currentLobby.Value.GetComponent<DataManager>().river)
+            // {
+            //     card.SetActive(false);
+            // }
 
         }
         Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
         currentSeat.Value = 0;
         pos.Value = "PlayerPlaceHolder";
+        betState.Value = BetState.Fold;
+        isTurn.Value = false;
+        folded.Value = true;
     }
 
     ////GAME 
@@ -500,7 +513,7 @@ public class Player : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void leaveLobbyServerRpc()
     {
-        resetState();
+        //resetState();
 
         //currentLobby.Value.GetComponent<DataManager>().addPlayerPL(OwnerClientId);
         leaveLobbyClientRpc();
@@ -549,12 +562,9 @@ public class Player : NetworkBehaviour
             {
                 room.SetActive(false);
             }
- 
         }
+
         leaveLobbyServerRpc();
-
-
-
     }
 
     void dbUpdateCash()

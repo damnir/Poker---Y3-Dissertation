@@ -122,6 +122,7 @@ public class DataManager : NetworkBehaviour
     public GameObject pot;
     public TMP_Text handRankText;
 
+
     public bool actionTaken = false;
 
     void Start()
@@ -144,6 +145,7 @@ public class DataManager : NetworkBehaviour
 
         if(IsClient) {
             Debug.Log("Data Manager - is client");
+            //clientSideRpc = new ulong[]{NetworkManager.Singleton.LocalClientId };
         }
     }
 
@@ -274,6 +276,7 @@ public class DataManager : NetworkBehaviour
                 
             }
         }
+
     }
 
     public void clientDisconnect(ulong id) {
@@ -701,13 +704,6 @@ public class DataManager : NetworkBehaviour
         {
             Debug.Log("Card: " + cc);
         }
-
-        SyncPreviousClientRpc(riverCards, new ClientRpcParams {
-            Send = new ClientRpcSendParams {
-                    TargetClientIds = new ulong[]{id}
-                }
-            }
-        );
     }
 
     [ClientRpc]
@@ -716,12 +712,10 @@ public class DataManager : NetworkBehaviour
         for(int i = 0; i < rCards.Length; i++)
         {
             Debug.Log("Card: " + rCards[i]);
-            try {
-            if(rCards[i].Equals(null) || rCards[i] == "")
+            
+            if(rCards[i] == "" || rCards[i] == null)
             {
                 river[i].SetActive(false);
-                Debug.Log("CARD IS POO");
-                return;
             }
             else
             {
@@ -731,9 +725,18 @@ public class DataManager : NetworkBehaviour
                 cardImage.sprite = Resources.Load<Sprite>("Cards/" + rCards[i]);
                 pot.GetComponent<Text>().text = "$"+mainPot.Value.ToString();                
             }
-        }catch(NullReferenceException e) { return;}
-
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void SyncObjectsServerRpc(ulong[] _id)
+    {
+        SyncPreviousClientRpc(riverCards, new ClientRpcParams {
+            Send = new ClientRpcSendParams {
+                    TargetClientIds = _id
+                }
+            }
+        );
     }
 
     public void addPlayer(GameObject player) {

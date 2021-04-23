@@ -7,9 +7,20 @@ using MLAPI.Connection;
 
 public class Lobbies : NetworkBehaviour
 { 
-    public GameObject[] lobbies = new GameObject[15];
+    public GameObject[] lobbies = new GameObject[5];
     
     public List<GameObject> connectedPlayers;
+
+    void Start()
+    {
+        if(IsServer)
+        {
+            foreach(GameObject lobby in lobbies)
+            {
+                lobby.SetActive(true);
+            }
+        }
+    }
 
     public void addPlayer(GameObject pp)
     {
