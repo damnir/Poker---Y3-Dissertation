@@ -30,6 +30,10 @@ public class Seat : MonoBehaviour
     }
 
     public void sit() {
+        if(GameObject.Find("Menu") != null)
+        {
+            return;
+        }
         GameObject player = GetLocalPlayerObject().gameObject;
         player.GetComponent<Player>().sit(this.gameObject.name);
         ButtonManager.instance.hideSeats();

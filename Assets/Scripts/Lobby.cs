@@ -45,6 +45,11 @@ public class Lobby : NetworkBehaviour
     public void onClick() {
         if(IsClient) {
             
+            if(GameObject.Find("LoginScreen") != null)
+            {
+                return;
+            }
+
             GameObject.Find("Menu").SetActive(false);
             /*
             GameObject player = lobbyManager.getPlayerGoById(NetworkManager.Singleton.LocalClientId);
