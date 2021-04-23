@@ -34,6 +34,8 @@ public class ButtonManager : NetworkBehaviour
     public GameObject loadingScreen;
     public GameObject seats;
     public GameObject sitUpButton;
+    public GameObject leaveButton;
+    public GameObject menu;
 
     void Start() {
         //NetworkManager.Singleton.StartServer();
@@ -175,6 +177,7 @@ public class ButtonManager : NetworkBehaviour
             seat.GetComponent<Image>().sprite = Resources.Load<Sprite>("blank");
         }
         sitUpButton.SetActive(true);
+        leaveButton.SetActive(false);
     }
 
     public void showSeats()
@@ -184,10 +187,18 @@ public class ButtonManager : NetworkBehaviour
             seat.GetComponent<Image>().sprite = Resources.Load<Sprite>("emptyseat");
         }  
         sitUpButton.SetActive(false);
+        leaveButton.SetActive(true);
 
         GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().sitUp();
     }
 
+    public void onLeaveClick()
+    {
+        menu.SetActive(true);
+        Player player = GetLocalPlayerObject().GetComponent<Player>();
+        //GetLocalPlayerObject().GetComponent<Player>().changeLobby(lobby);
+        player.currentLobby.Value = null;
+    }
 
 
 }

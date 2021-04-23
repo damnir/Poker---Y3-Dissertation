@@ -277,7 +277,7 @@ public class DataManager : NetworkBehaviour
                     LoginManager.instance.clientDisconnect(id);
                 }
                 updateClientParams();
-                if(playerIds.Count < 2)
+                if(playerIds.Count == 1)
                 {
                     endTurnClientRpc(playerIds[0], clientRpcParams);
 
@@ -292,16 +292,21 @@ public class DataManager : NetworkBehaviour
     {
         Debug.Log("sitUp called for id: " + id);
         playerNum--;
-        int index = playerIds.FindIndex(a => a == id);
-        players.RemoveAt(index);
-        playerOrder.Remove(id);
-        playerOrderRe.Remove(id);
-        playerIds.Remove(id);
-        //updateClientParams();
-        
-        endTurnClientRpc(id, clientRpcParams);
 
-        if(playerIds.Count < 2)
+        try {
+            int index = playerIds.FindIndex(a => a == id);
+            
+            players.RemoveAt(index);
+            playerOrder.Remove(id);
+            playerOrderRe.Remove(id);
+            playerIds.Remove(id);
+            endTurnClientRpc(id, clientRpcParams);
+
+        }catch(ArgumentOutOfRangeException e) {
+            Debug.Log("Player never sat down - no need to remove from lobby");
+        }
+        
+        if(playerIds.Count == 1)
         {
             endTurnClientRpc(playerIds[0], clientRpcParams);
             resetBetStateClientRpc(clientRpcParams);

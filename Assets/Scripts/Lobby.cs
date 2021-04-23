@@ -58,7 +58,12 @@ public class Lobby : NetworkBehaviour
                 }
             }*/
 
-            GetLocalPlayerObject().GetComponent<Player>().changeLobby(lobby);
+            Player player = GetLocalPlayerObject().GetComponent<Player>();
+            //GetLocalPlayerObject().GetComponent<Player>().changeLobby(lobby);
+            //player.currentLobby = null;
+
+            player.changeLobby(lobby);
+
 
         }
     }
