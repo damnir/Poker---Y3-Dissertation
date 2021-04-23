@@ -76,6 +76,14 @@ public class LoginManager : NetworkBehaviour
             Debug.Log("Instance already exists, destroying object!");
             Destroy(this);
         }
+
+        NetworkManager.Singleton.OnClientDisconnectCallback += networkDisconnect;
+    }
+
+    public void networkDisconnect(ulong id)
+    {
+        //LoginManager.instance.clientDisconnect(id);
+        StartCoroutine(clientDisconnectDB(id.ToString()));
     }
 
     private void InitializeFirebase()
@@ -263,6 +271,7 @@ public class LoginManager : NetworkBehaviour
 
                         StartCoroutine(UpdateUsernameDatabase(User.DisplayName));
                         StartCoroutine(UpdateCash(100000));
+                        StartCoroutine(InitStats(User.UserId));
                         StartCoroutine(SetOnlineStatus(User.UserId, false));
 
                         //UpdateCash(100000);
@@ -274,6 +283,30 @@ public class LoginManager : NetworkBehaviour
                 }
             }
         }
+    }
+
+    private IEnumerator InitStats(string _id)
+    {
+        var DBTask = DBreference.Child("users").Child(_id).Child("xp").SetValueAsync(0);
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        var DBTask2 = DBreference.Child("users").Child(_id).Child("xp").SetValueAsync(0);
+
+        yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);
+
+        var DBTask3 = DBreference.Child("users").Child(_id).Child("hands_played").SetValueAsync(0);
+
+        yield return new WaitUntil(predicate: () => DBTask3.IsCompleted);
+
+        var DBTask4 = DBreference.Child("users").Child(_id).Child("hands_won").SetValueAsync(0);
+
+        yield return new WaitUntil(predicate: () => DBTask4.IsCompleted);
+        
+        var DBTask5 = DBreference.Child("users").Child(_id).Child("biggest_win").SetValueAsync(0);
+
+        yield return new WaitUntil(predicate: () => DBTask5.IsCompleted);
+
     }
 
 
@@ -520,6 +553,10 @@ public class LoginManager : NetworkBehaviour
             //Loop through every users UID
             foreach (DataSnapshot childSnapshot in snapshot.Children)
             {
+                if(childSnapshot.Child("username").Value == null)
+                {
+                    continue;
+                }
                 if(childSnapshot.Child("username").Value.ToString() == _username)
                 {
                     Friend friend = new Friend(User.DisplayName, User.UserId);
@@ -687,6 +724,95 @@ private IEnumerator UpdateFriendRequests(string _id)
                 newFriendRequest.transform.SetParent(friendsListGo.transform, false);
             }
         }
+    }
+
+    public void updateXp(string _id, int _xp)
+    {
+        StartCoroutine(UpdateXpDB(_id, _xp));
+    }
+
+    private IEnumerator UpdateXpDB(string _id, int _xp)
+    {
+        var DBTask = DBreference.Child("users").Child(_id).Child("xp").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if(DBTask.Result == null)
+        {
+            yield break;
+        }
+
+        var DBTask2 = DBreference.Child("users").Child(_id).Child("xp").SetValueAsync(Int32.Parse(DBTask.Result.Value.ToString()) + _xp);
+
+        yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);
+    }
+
+    public void updateHandsWon(string _id, int won)
+    {
+        StartCoroutine(UpdateHandsWonDB(_id, won));
+    }
+
+    private IEnumerator UpdateHandsWonDB(string _id, int won)
+    {
+        var DBTask = DBreference.Child("users").Child(_id).Child("hands_won").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if(DBTask.Result == null)
+        {
+            yield break;
+        }
+
+        var DBTask2 = DBreference.Child("users").Child(_id).Child("hands_won").SetValueAsync(Int32.Parse(DBTask.Result.Value.ToString()) + won);
+
+        yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);
+    }
+
+    public void updateHandsPlayed(string _id, int played)
+    {
+        StartCoroutine(UpdateHandsPlayedDB(_id, played));
+    }
+
+    private IEnumerator UpdateHandsPlayedDB(string _id, int played)
+    {
+        var DBTask = DBreference.Child("users").Child(_id).Child("hands_played").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if(DBTask.Result == null)
+        {
+            yield break;
+        }
+
+        var DBTask2 = DBreference.Child("users").Child(_id).Child("hands_played").SetValueAsync(Int32.Parse(DBTask.Result.Value.ToString()) + played);
+
+        yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);
+    }
+
+    public void updateBiggestWin(string _id, int won)
+    {
+        StartCoroutine(UpdateBiggestWinDB(_id, won));
+    }
+
+    private IEnumerator UpdateBiggestWinDB(string _id, int won)
+    {
+        var DBTask = DBreference.Child("users").Child(_id).Child("biggest_win").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        if(DBTask.Result == null)
+        {
+            yield break;
+        }
+        else if(Int32.Parse(DBTask.Result.Value.ToString()) > won)
+        {
+            yield break;
+        }
+
+        var DBTask2 = DBreference.Child("users").Child(_id).Child("biggest_win").SetValueAsync(won);
+
+        yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);
+
     }
 
     public void UpdateFriends(string _id)
@@ -857,7 +983,10 @@ private IEnumerator UpdateFriendRequests(string _id)
         }
         
         GameObject profile = Instantiate(profileGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
-        profile.GetComponent<ViewProfile>().setValues(snapshot.Child("username").Value.ToString(), snapshot.Child("cash").Value.ToString(), "10", "34", "12", "$32897483", isFriend, _id);
+            profile.GetComponent<ViewProfile>().setValues(snapshot.Child("username").Value.ToString(), snapshot.Child("cash").Value.ToString(),
+            snapshot.Child("xp").Value.ToString(), snapshot.Child("hands_played").Value.ToString(), snapshot.Child("hands_won").Value.ToString(),
+            snapshot.Child("biggest_win").Value.ToString(), isFriend, _id);
+
         if(parent == "Menu")
         {
             profile.transform.SetParent(GameObject.Find(parent).transform, false);

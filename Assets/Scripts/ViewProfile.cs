@@ -25,7 +25,7 @@ public class ViewProfile : MonoBehaviour
         xpText.text = "Experience: " + xp+"xp";
         totalHandsText.text = "Total Hands Played: " +totalHands;
         TotalHandsWonText.text = "Total Hands Won: " +totalWins;
-        BiggestWinText.text = "Biggest Single Win: " +biggestWin;
+        BiggestWinText.text = "Biggest Single Win: $" +biggestWin;
         netId = id;
         if(!friends)
         {

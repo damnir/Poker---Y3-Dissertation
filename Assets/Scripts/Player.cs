@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using MLAPI;
@@ -9,13 +8,8 @@ using MLAPI.NetworkVariable;
 using TMPro;
 using static MLAPI.Spawning.NetworkSpawnManager;
 
-//using MLAPI.NetworkedVar;
-
 public class Player : NetworkBehaviour
 {
-    DataManager dataManager;
-    Lobbies lobbies;
-
     public enum BetState 
     {
         Wait,
@@ -33,118 +27,32 @@ public class Player : NetworkBehaviour
         Ingame
     }
 
-    NetworkVariableSettings netVarEveryone = new NetworkVariableSettings
+    public static NetworkVariableSettings netVarSettings = new NetworkVariableSettings
         {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
+            WritePermission = NetworkVariablePermission.Everyone,
             ReadPermission = NetworkVariablePermission.Everyone
         };
+    [Header("Synced Variables")]
+    public NetworkVariable<ulong> clientID = new NetworkVariable<ulong>(netVarSettings);
+    public NetworkVariableVector3 Position = new NetworkVariableVector3(netVarSettings);
+    public NetworkVariableString pos = new NetworkVariableString(netVarSettings);
+    public NetworkVariable<GameObject> currentLobby = new NetworkVariable<GameObject>(netVarSettings);
+    public NetworkVariableInt currentSeat = new NetworkVariableInt(netVarSettings);
+    public NetworkVariable<ulong> cash = new NetworkVariable<ulong>(netVarSettings);
+    public NetworkVariable<ulong> currentBet = new NetworkVariable<ulong>(netVarSettings);
+    public NetworkVariable<bool> folded = new NetworkVariable<bool>(netVarSettings);
+    public NetworkVariable<bool> isTurn = new NetworkVariable<bool>(netVarSettings);
+    public NetworkVariableString betGoText = new NetworkVariableString(netVarSettings);
+    public NetworkVariable<BetState> betState = new NetworkVariable<BetState>(netVarSettings);
+    public NetworkVariableString card1v = new NetworkVariableString(netVarSettings);
+    public NetworkVariableString card2v = new NetworkVariableString(netVarSettings);
+    public NetworkVariableString netId = new NetworkVariableString(netVarSettings);
+    public NetworkVariableString username = new NetworkVariableString(netVarSettings);
+    public NetworkVariableBool end = new NetworkVariableBool(netVarSettings);
+    public NetworkVariable<GameState> gameState = new NetworkVariable<GameState>(netVarSettings);
 
-    public NetworkVariable<ulong> clientID = new NetworkVariable<ulong>(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone,
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariableString pos = new NetworkVariableString(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone,
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariable<GameObject> currentLobby = new NetworkVariable<GameObject>(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone,
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariableInt currentSeat = new NetworkVariableInt(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone,
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariable<ulong> cash = new NetworkVariable<ulong>(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariable<ulong> currentBet = new NetworkVariable<ulong>(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariable<bool> folded = new NetworkVariable<bool>(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariable<bool> isTurn = new NetworkVariable<bool>(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariableString betGoText = new NetworkVariableString(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariable<BetState> betState = new NetworkVariable<BetState>(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariableString card1v = new NetworkVariableString(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariableString card2v = new NetworkVariableString(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-        
-    public NetworkVariableString netId = new NetworkVariableString(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariableString username = new NetworkVariableString(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariableBool end = new NetworkVariableBool(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-    public NetworkVariable<GameState> gameState = new NetworkVariable<GameState>(new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
-            ReadPermission = NetworkVariablePermission.Everyone
-        });
-
-
+    [Header("Client Side Variables")]
     public ulong lobbyBet;
-
     public GameObject foldGo;
     public GameObject card1;
     public GameObject card2;
@@ -152,19 +60,13 @@ public class Player : NetworkBehaviour
     public GameObject animation;
     public GameObject ownerGo;
     public GameObject win;
-    public GameObject dbManager;
     public GameObject GameInvite;
-    public TMP_Text handRank;
-    public Text potText;
 
     GameObject text;
 
     public GameObject buttonManager;
 
-
     public ulong[] clientSideRpc;
-
-    public string Channel = "MLAPI_DEFAULT_MESSAGE";
 
     void Start()
     {
@@ -373,6 +275,8 @@ public class Player : NetworkBehaviour
 
     public void dealCards(string c1, string c2) {
 
+        LoginManager.instance.updateHandsPlayed(netId.Value, 1);
+
         card1.transform.localScale = new Vector3(1.4f, 1.4f, 1.0f);
         card1.GetComponent<Image>().sprite = Resources.Load<Sprite>("Cards/" + c1);
 
@@ -488,6 +392,10 @@ public class Player : NetworkBehaviour
 
     public void winner(ulong wcash)
     {
+        LoginManager.instance.updateHandsWon(netId.Value, 1);
+        LoginManager.instance.updateBiggestWin(netId.Value, (int)wcash);
+        LoginManager.instance.updateXp(netId.Value, (int)currentLobby.Value.GetComponent<DataManager>().smallBlind/10);
+
         betGoText.Value = "<sprite=0>+$"+ wcash;
         cash.Value += wcash;
         betState.Value = BetState.Win;

@@ -6,13 +6,10 @@ using MLAPI;
 using MLAPI.Messaging;
 using MLAPI.NetworkVariable;
 using MLAPI.NetworkVariable.Collections;
-using static System.Action;
 using System;
-using static System.Exception;
 using static MLAPI.Spawning.NetworkSpawnManager;
 using System.Linq;
 using TMPro;
-
 
 public class DataManager : NetworkBehaviour
 {
@@ -296,10 +293,9 @@ public class DataManager : NetworkBehaviour
                 playerOrder.Remove(id);
                 playerOrderRe.Remove(id);
                 playerIds.Remove(id);
-                if(GetPlayerNetworkObject(id) == null)
-                {
-                    LoginManager.instance.clientDisconnect(id);
-                }
+                
+                LoginManager.instance.clientDisconnect(id);
+                
                 updateClientParams();
                 if(playerIds.Count == 1)
                 {
