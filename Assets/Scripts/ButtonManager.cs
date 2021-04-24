@@ -41,11 +41,16 @@ public class ButtonManager : NetworkBehaviour
     public GameObject messageGo;
     public TMP_InputField messageInput;
     public GameObject bing;
+    public GameObject leaderboard;
 
-
+    //leaderboard vars
+    private bool leadFriendsOnly;
+    private string sortBy;
 
     void Start() {
         //NetworkManager.Singleton.StartServer();
+        leadFriendsOnly = false;
+        sortBy = "cash";
     }
 
     public void onServerClicked()
@@ -92,11 +97,20 @@ public class ButtonManager : NetworkBehaviour
         {
             checkText.GetComponent<TextMeshProUGUI>().text = "<sprite=1>Check";
         }
+        if(value < 1)
+        {
+            value = 0;
+        }
         callText.GetComponent<Text>().text = "$" + value;
     }
 
     public void updateRaise(ulong min, ulong max)
     {
+        if(min < 1 || max < 1)
+        {
+            min = 0;
+            max = 0;
+        }
         //slider.GetComponent<Slider>().value = min;
         slider.GetComponent<Slider>().minValue = min;
         slider.GetComponent<Slider>().maxValue = max;
@@ -241,6 +255,48 @@ public class ButtonManager : NetworkBehaviour
         newMessage.transform.SetParent(messageBox.transform, false);
         bing.SetActive(true);
 
+    }
+
+    public void onLeaderboardClick()
+    {
+        if(leaderboard.active)
+        {
+            leaderboard.SetActive(false);
+        }
+        else{
+            LoginManager.instance.populateLeaderboard(GetLocalPlayerObject().GetComponent<Player>().netId.Value, "cash", false);
+            leaderboard.SetActive(true);
+            //updateMessages();
+        }       
+    }
+
+    void updateLB()
+    {
+        LoginManager.instance.populateLeaderboard(GetLocalPlayerObject().GetComponent<Player>().netId.Value, sortBy, leadFriendsOnly);     
+    }
+
+    public void SortByCash()
+    {
+        sortBy = "cash";
+        updateLB();
+    }
+
+    public void SortByXp()
+    {
+        sortBy = "xp";
+        updateLB();
+    }
+
+    public void LBFriendsOnly()
+    {
+        leadFriendsOnly = true;
+        updateLB();
+    }
+
+    public void LBGloval()
+    {
+        leadFriendsOnly = false;
+        updateLB();
     }
 
 

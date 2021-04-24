@@ -22,29 +22,37 @@ public class Lobby : NetworkBehaviour
     public GameObject playerPrefab;
     public GameObject lobby;
     public GameObject text;
+    public GameObject errorMessage;
 
-
+    DataManager dm;
     public bool clicked = false;
 
     // Start is called before the first frame update
     void Start()
     {
         lobbyManager = GameObject.Find("Lobbies").GetComponent<Lobbies>();
+        dm = lobby.GetComponent<DataManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
         try {
-            Text tt = text.GetComponent<Text>();
-            tt.text = lobby.name +  " " + lobby.GetComponent<DataManager>().getPlayerNum() + "/7";
+            text.GetComponent<Text>().text = lobby.name + " | Players: " + dm.playerNumNet.Value +"/7 | $" + dm.smallBlind+ "/$" +dm.bigBlind;
+
         }catch(NullReferenceException e) { }
         
     }
 
     public void onClick() {
         if(IsClient) {
-            
+            if(GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().cash.Value < lobby.GetComponent<DataManager>().bigBlind*2)
+            {
+                StartCoroutine(showErrorMessage());
+                return;
+            }
+
+
             if(GameObject.Find("LoginScreen") != null)
             {
                 return;
@@ -71,6 +79,16 @@ public class Lobby : NetworkBehaviour
 
 
         }
+    }
+
+    public IEnumerator showErrorMessage()
+    {
+        errorMessage.SetActive(true);
+
+        yield return new WaitForSeconds(3);
+
+        errorMessage.SetActive(false);
+
     }
 
 }

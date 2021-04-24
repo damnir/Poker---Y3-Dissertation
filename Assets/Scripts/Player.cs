@@ -32,6 +32,7 @@ public class Player : NetworkBehaviour
             WritePermission = NetworkVariablePermission.Everyone,
             ReadPermission = NetworkVariablePermission.Everyone
         };
+
     [Header("Synced Variables")]
     public NetworkVariable<ulong> clientID = new NetworkVariable<ulong>(netVarSettings);
     public NetworkVariableVector3 Position = new NetworkVariableVector3(netVarSettings);
@@ -188,6 +189,12 @@ public class Player : NetworkBehaviour
                 animation.SetActive(true);
                 if (IsOwner)
                 {
+                    if(cash.Value < 1)
+                    {
+                        buttonManager.GetComponent<ButtonManager>().updateRaise(0, 0);
+                        buttonManager.GetComponent<ButtonManager>().updateCall(0);
+                        cash.Value = 0;
+                    }
                     buttonManager.GetComponent<ButtonManager>().updateCall(lobbyBet - currentBet.Value);
                     if(currentLobby.Value.GetComponent<DataManager>().previousBet.Value == 0)
                     {
@@ -274,6 +281,11 @@ public class Player : NetworkBehaviour
     }
 
     public void dealCards(string c1, string c2) {
+        if(cash.Value < currentLobby.Value.GetComponent<DataManager>().bigBlind)
+        {
+            sitUp();
+            return;
+        }
 
         LoginManager.instance.updateHandsPlayed(netId.Value, 1);
 

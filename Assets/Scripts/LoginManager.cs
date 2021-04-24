@@ -49,6 +49,10 @@ public class LoginManager : NetworkBehaviour
     public GameObject gameInviteGo;
     public GameObject profileGo;
 
+    [Header("Leaderboard")]
+    public GameObject leadPlayerGo;
+    public GameObject leaderboardList;
+
 
     void Awake()
     {
@@ -953,6 +957,68 @@ private IEnumerator UpdateFriendRequests(string _id)
             }
         }
 
+    }
+
+    public void populateLeaderboard(string _id, string _sortBy, bool _friendOnly)
+    {
+        StartCoroutine(PopulateLeaderBoardDB(_id, _sortBy, _friendOnly));
+    }
+
+    private IEnumerator PopulateLeaderBoardDB(string _id, string _sortBy, bool _friendsOnly)
+    {
+        foreach(Transform item in leaderboardList.transform)
+        {
+            Destroy(item.gameObject);
+        }
+        var DBTask = DBreference.Child("users").OrderByChild(_sortBy).GetValueAsync();
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        DataSnapshot result = DBTask.Result;
+        int i = 1;
+
+        if(_friendsOnly)
+        {
+            var DBTaskF = DBreference.Child("users").Child(_id).Child("friends").GetValueAsync();
+            yield return new WaitUntil(predicate: () => DBTaskF.IsCompleted);
+
+            DataSnapshot friends = DBTaskF.Result;
+            List<string> friendIds = new List<string>();
+
+            foreach(DataSnapshot friend in friends.Children)
+            {
+                friendIds.Add(friend.Key.ToString());
+                //Debug.Log("Added: " + friend.Key.ToString());
+            }
+           
+            foreach(DataSnapshot user in result.Children.Reverse<DataSnapshot>())
+            {
+                //Debug.Log(user.Key);
+                if(friendIds.Contains(user.Key.ToString()))
+                {
+                    GameObject leadPlayer = Instantiate(leadPlayerGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
+                    leadPlayer.transform.Find("text").GetComponent<TextMeshProUGUI>().text = String.Format("{0} {1} | ${2} | XP: {3}xp | Hands Played: {4} | Wins: {5} | Biggest Win: ${6}",
+                        i, user.Child("username").Value.ToString(), user.Child("cash").Value.ToString(), user.Child("xp").Value.ToString(), user.Child("hands_played").Value.ToString(),
+                        user.Child("hands_won").Value.ToString(), user.Child("biggest_win").Value.ToString());
+                    leadPlayer.transform.SetParent(leaderboardList.transform, false);
+                    i++;
+                }
+            }
+        }
+
+        else
+        {
+            foreach(DataSnapshot user in result.Children.Reverse<DataSnapshot>())
+            {
+                GameObject leadPlayer = Instantiate(leadPlayerGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
+                //Debug.Log(user.Value.ToString());
+                leadPlayer.transform.Find("text").GetComponent<TextMeshProUGUI>().text = String.Format("{0} {1} | ${2} | XP: {3}xp | Hands Played: {4} | Wins: {5} | Biggest Win: ${6}",
+                    i, user.Child("username").Value.ToString(), user.Child("cash").Value.ToString(), user.Child("xp").Value.ToString(), user.Child("hands_played").Value.ToString(),
+                    user.Child("hands_won").Value.ToString(), user.Child("biggest_win").Value.ToString());
+
+                leadPlayer.transform.SetParent(leaderboardList.transform, false);
+               i++;
+            }
+        }
     }
 
     public void showProfileClient(string _id, string senderId, string parent)
