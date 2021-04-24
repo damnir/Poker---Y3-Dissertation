@@ -527,7 +527,7 @@ public class DataManager : NetworkBehaviour
             card1 = getRandomCard();
             card2 = getRandomCard();
 
-            game.addPlayer(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, card1 + "-" + card2);
+            game.addPlayer(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, card1, card2, GetPlayerNetworkObject(id).GetComponent<Player>().currentSeat.Value);
 
             GetPlayerNetworkObject(id).GetComponent<Player>().dealCards(card1, card2);
 
@@ -635,7 +635,7 @@ public class DataManager : NetworkBehaviour
     
     [ServerRpc(RequireOwnership = false)]
     public void playerFoldServerRpc(ulong senderId) {
-        game.addTurn(senderId.ToString(), "fold", "0"); //GAME DB REPLAY
+        game.addTurn(senderId.ToString(), "fold", 0); //GAME DB REPLAY
 
 
         actionTaken = true;
@@ -645,7 +645,7 @@ public class DataManager : NetworkBehaviour
 
     [ServerRpc(RequireOwnership = false)]
     public void playerCallServerRpc(ulong senderID, ulong bet) {
-        game.addTurn(senderID.ToString(), "call", bet.ToString()); //GAME DB REPLAY
+        game.addTurn(senderID.ToString(), "call", (int)bet); //GAME DB REPLAY
 
         actionTaken = true;
 
@@ -659,7 +659,7 @@ public class DataManager : NetworkBehaviour
 
     [ServerRpc(RequireOwnership = false)]
     public void playerRaiseServerRpc(ulong senderID, ulong call, ulong bet) {
-        game.addTurn(senderID.ToString(), "raise", bet.ToString()); //GAME DB REPLAY
+        game.addTurn(senderID.ToString(), "raise", (int)bet); //GAME DB REPLAY
 
         actionTaken = true;
 
@@ -1093,7 +1093,10 @@ public class DataManager : NetworkBehaviour
         foreach(Hand hand in winners)
         {
             GetPlayerNetworkObject(hand.pId).GetComponent<Player>().winner(win);
+            game.addWinner(GetPlayerNetworkObject(hand.pId).GetComponent<Player>().netId.Value); //DB GAME
         }
+        //DB GAME
+        game.setWin((int)win, winners[0].text);
     }
 
     public ulong checkForceWin()
@@ -1118,23 +1121,61 @@ public class DataManager : NetworkBehaviour
 
     public class Game
     {
-        public List<string> players = new List<string>();
+        public class Player
+        {
+            public string netId;
+            public string card1;
+            public string card2;
+            public int seat; 
 
+            public Player(string _netId, string _card1, string _card2, int _seat)
+            {
+                netId = _netId;
+                card1 = _card1;
+                card2 = _card2;
+                seat = _seat;
+            }
+        }
+
+        public class Turn
+        {
+            public string netId;
+            public string action;
+            public int bet;
+
+            public Turn(string _netId, string _action, int _bet)
+            {
+                netId = _netId;
+                action = _action;
+                bet = _bet;
+            }
+        }
+
+        public List<string> players = new List<string>();
         public List<string> river = new List<string>();
         public List<string> round = new List<string>();
+        public List<string> winners = new List<string>();
+        public string handStength;
+        public int win;
 
         public Game() 
         {
         }
 
-        public void addTurn(string _id, string action, string bet)
+        public void addTurn(string _id, string action, int bet)
         {
-            round.Add(_id+"-"+action+"-"+bet);
+            Turn turn = new Turn(_id, action, bet);
+            string json = JsonUtility.ToJson(turn);
+
+            round.Add(json);
         }
 
-        public void addPlayer(string _id, string cards)
+        public void addPlayer(string _id, string _card1, string _card2, int _seat)
         {
-            players.Add(_id+"-"+cards);
+            Player player = new Player(_id, _card1, _card2, _seat);
+            string json = JsonUtility.ToJson(player);
+
+            players.Add(json);
         }
 
         public void addRiverCard(string _card)
@@ -1142,11 +1183,25 @@ public class DataManager : NetworkBehaviour
             river.Add(_card);
         }
 
+        public void addWinner(string winner)
+        {
+            winners.Add(winner);
+        }
+
+        public void setWin(int _win, string hand)
+        {
+            win = _win;
+            handStength = hand;
+        }
+
         public void clearGame()
         {
             players.Clear();
             round.Clear();
             river.Clear();
+            winners.Clear();
+            win = 0;
+            handStength = "";
         }
     }
 
