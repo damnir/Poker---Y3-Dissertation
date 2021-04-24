@@ -635,7 +635,7 @@ public class DataManager : NetworkBehaviour
     
     [ServerRpc(RequireOwnership = false)]
     public void playerFoldServerRpc(ulong senderId) {
-        game.addTurn(senderId.ToString(), "fold", 0); //GAME DB REPLAY
+        game.addTurn(GetPlayerNetworkObject(senderId).GetComponent<Player>().netId.Value, "fold", 0); //GAME DB REPLAY
 
 
         actionTaken = true;
@@ -645,7 +645,7 @@ public class DataManager : NetworkBehaviour
 
     [ServerRpc(RequireOwnership = false)]
     public void playerCallServerRpc(ulong senderID, ulong bet) {
-        game.addTurn(senderID.ToString(), "call", (int)bet); //GAME DB REPLAY
+        game.addTurn(GetPlayerNetworkObject(senderID).GetComponent<Player>().netId.Value, "call", (int)bet); //GAME DB REPLAY
 
         actionTaken = true;
 
@@ -659,7 +659,7 @@ public class DataManager : NetworkBehaviour
 
     [ServerRpc(RequireOwnership = false)]
     public void playerRaiseServerRpc(ulong senderID, ulong call, ulong bet) {
-        game.addTurn(senderID.ToString(), "raise", (int)bet); //GAME DB REPLAY
+        game.addTurn(GetPlayerNetworkObject(senderID).GetComponent<Player>().netId.Value, "raise", (int)bet); //GAME DB REPLAY
 
         actionTaken = true;
 
@@ -1160,6 +1160,11 @@ public class DataManager : NetworkBehaviour
 
         public Game() 
         {
+        }
+
+        public static Game CreateFromJSON(string json)
+        {
+            return JsonUtility.FromJson<Game>(json);
         }
 
         public void addTurn(string _id, string action, int bet)

@@ -10,7 +10,7 @@ using MLAPI;
 using System;
 using static MLAPI.Spawning.NetworkSpawnManager;
 using MLAPI.Messaging;
-
+using Newtonsoft.Json;
 
 public class LoginManager : NetworkBehaviour
 {
@@ -52,7 +52,6 @@ public class LoginManager : NetworkBehaviour
     [Header("Leaderboard")]
     public GameObject leadPlayerGo;
     public GameObject leaderboardList;
-
 
     void Awake()
     {
@@ -494,14 +493,50 @@ public class LoginManager : NetworkBehaviour
         //DBreference.UpdateChildrenAsync(_game);
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
-        if (DBTask.Exception != null)
+        foreach(string player in _game.players)
         {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+            var playerD = JsonConvert.DeserializeObject<Dictionary<string, string>>(player);
+            var DBTaskP = DBreference.Child("users").Child(playerD["netId"]).Child("games").Child(key).SetValueAsync(_game.winners);
+            yield return new WaitUntil(predicate: () => DBTaskP.IsCompleted);
+
         }
-        else
+    }
+
+    public void test()
+    {
+        StartCoroutine(readGames());
+    }
+
+    public IEnumerator readGames()
+    {
+        var DBTask = DBreference.Child("games").GetValueAsync();
+        
+        //DBreference.UpdateChildrenAsync(_game);
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        DataSnapshot data = DBTask.Result;
+
+
+        foreach(DataSnapshot games in data.Children)
         {
-            //Deaths are now updated
+            DataManager.Game game = DataManager.Game.CreateFromJSON(games.GetRawJsonValue());
+
+            foreach(string pp in game.players)
+            {
+                var player = JsonConvert.DeserializeObject<Dictionary<string, string>>(pp);
+
+                Debug.Log(pp);
+                Debug.Log(player["netId"]);
+            }
+            foreach(string oo in game.round)
+            {
+                //Debug.Log(oo);
+                //Newa
+            }
+
         }
+
+
     }
     public IEnumerator SetOnlineStatus(string _id, bool _status)
     {
@@ -1133,6 +1168,8 @@ private IEnumerator UpdateFriendRequests(string _id)
             this.id = _id;
         }
     }
+
+
 
 
 }
