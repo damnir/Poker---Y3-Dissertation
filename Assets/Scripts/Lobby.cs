@@ -46,6 +46,7 @@ public class Lobby : NetworkBehaviour
 
     public void onClick() {
         if(IsClient) {
+            GameObject.Find("MainGame").GetComponent<Canvas>().enabled = true;
             if(GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().cash.Value < lobby.GetComponent<DataManager>().bigBlind*2)
             {
                 StartCoroutine(showErrorMessage());

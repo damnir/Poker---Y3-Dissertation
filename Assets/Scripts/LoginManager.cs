@@ -201,6 +201,8 @@ public class LoginManager : NetworkBehaviour
             //usernameField.text = User.DisplayName;
             ButtonManager.instance.MenuScreen(); // Change to user data UI
             confirmLoginText.text = "";
+            GameObject.Find("Menu").GetComponent<Canvas>().enabled = true;
+
             ClearLoginFeilds();
             ClearRegisterFeilds();
         }
@@ -539,7 +541,6 @@ public class LoginManager : NetworkBehaviour
         {
             DataManager.Game game = DataManager.Game.CreateFromJSON(json);
 
-            GameObject newGame = Instantiate(replayGo, new Vector3(transform.position.x, transform.position.y, transform.position.z), Quaternion.identity);
             if(orderByPot)
             {
                 //do nothing
@@ -558,6 +559,8 @@ public class LoginManager : NetworkBehaviour
                     continue;
                 }
             }
+
+            GameObject newGame = Instantiate(replayGo, new Vector3(transform.position.x, transform.position.y, transform.position.z), Quaternion.identity);
             
             string win;
             if(game.winners.Contains(_id))

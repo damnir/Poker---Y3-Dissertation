@@ -227,6 +227,8 @@ public class ButtonManager : NetworkBehaviour
     {
         menu.SetActive(true);
         Player player = GetLocalPlayerObject().GetComponent<Player>();
+        GameObject.Find("MainGame").GetComponent<Canvas>().enabled = false;
+
         //GetLocalPlayerObject().GetComponent<Player>().changeLobby(lobby);
         player.currentLobby.Value = null;
     }
