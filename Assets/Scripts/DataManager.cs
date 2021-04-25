@@ -1222,6 +1222,7 @@ public class DataManager : NetworkBehaviour
             winners.Clear();
             win = 0;
             handStength = "";
+            time = DateTime.Now.ToString();
         }
     }
 
