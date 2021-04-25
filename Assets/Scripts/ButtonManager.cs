@@ -47,6 +47,7 @@ public class ButtonManager : NetworkBehaviour
     public GameObject replayScene;
     public GameObject quitButton;
     public GameObject backButton;
+    public GameObject replayList;
 
 
     //leaderboard vars
@@ -316,11 +317,15 @@ public class ButtonManager : NetworkBehaviour
 
     public void onReplayClicked()
     {
+        LoginManager.instance.replay(GetLocalPlayerObject().GetComponent<Player>().netId.Value);
         backButton.SetActive(true);
         lobbyList.SetActive(false);
         playButton.SetActive(false);
         replayButton.SetActive(false);
         quitButton.SetActive(false);  
+        replayList.SetActive(true);
+
+        //init
     }
 
     public void backButtonPress()
@@ -330,6 +335,13 @@ public class ButtonManager : NetworkBehaviour
         playButton.SetActive(true);
         replayButton.SetActive(true);
         quitButton.SetActive(true);  
+        replayList.SetActive(false);
+    }
+
+    public void replay()
+    {
+        replayScene.SetActive(true);
+
     }
 
 

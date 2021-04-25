@@ -53,6 +53,11 @@ public class LoginManager : NetworkBehaviour
     public GameObject leadPlayerGo;
     public GameObject leaderboardList;
 
+    [Header("Replay")]
+    public GameObject replayGo;
+    public GameObject replayList;
+    public GameObject replayScene;
+
     void Awake()
     {
         //Check that all of the necessary dependencies for Firebase are present on the system
@@ -535,6 +540,55 @@ public class LoginManager : NetworkBehaviour
             GameObject.Find("ReplayMode").GetComponent<ReplayGame>().game = game;
 
         }
+    }
+
+    public void replay(string _id)
+    {
+        StartCoroutine(PopulateReplay(_id, true, true));
+    }
+
+    public IEnumerator PopulateReplay(string _id, bool orderByWins, bool orderByPot)
+    {
+        foreach(Transform item in replayList.transform)
+        {
+            Destroy(item.gameObject);
+        }
+        var DBTask = DBreference.Child("users").Child(_id).Child("games").GetValueAsync();
+
+        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
+
+        DataSnapshot userGamesResult = DBTask.Result;
+
+        List<string> userGames = new List<string>();
+
+        foreach(DataSnapshot game in userGamesResult.Children)
+        {
+            var DBTask2 = DBreference.Child("games").Child(game.Key).GetValueAsync();
+            
+            yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);
+
+            userGames.Add(DBTask2.Result.GetRawJsonValue());
+        }
+
+        foreach(string json in userGames)
+        {
+            DataManager.Game game = DataManager.Game.CreateFromJSON(json);
+
+            GameObject newGame = Instantiate(replayGo, new Vector3(transform.position.x, transform.position.y, transform.position.z), Quaternion.identity);
+            string win;
+            if(game.winners.Contains(_id))
+            {
+                win = "( - WON - )";
+            }
+            else
+            {
+                win = "( - LOST - )";
+            }
+            newGame.GetComponent<ReplayGo>().setValues(game, String.Format("{0} |  Pot: ${1} | Players: {2} | 12/04/2020 13:45", win, game.win, game.players.Count));
+            newGame.transform.SetParent(replayList.transform, false);
+        }
+
+        //DataSnapshot allGamesResult = DBTask.Result;
 
 
 
