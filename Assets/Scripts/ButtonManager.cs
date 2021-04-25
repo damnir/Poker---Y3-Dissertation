@@ -42,6 +42,11 @@ public class ButtonManager : NetworkBehaviour
     public TMP_InputField messageInput;
     public GameObject bing;
     public GameObject leaderboard;
+    public GameObject playButton;
+    public GameObject replayButton;
+    public GameObject replayScene;
+    public GameObject quitButton;
+
 
     //leaderboard vars
     private bool leadFriendsOnly;
@@ -63,7 +68,7 @@ public class ButtonManager : NetworkBehaviour
     public void onClientClicker()
     {
         loginScreen.SetActive(true);
-        lobbyList.SetActive(true);
+        //lobbyList.SetActive(true);
 
         NetworkManager.Singleton.StartClient();
         buttonClient.SetActive(false);
@@ -297,6 +302,22 @@ public class ButtonManager : NetworkBehaviour
     {
         leadFriendsOnly = false;
         updateLB();
+    }
+
+    public void onPlayClicked()
+    {
+        lobbyList.SetActive(true);
+        playButton.SetActive(false);
+        replayButton.SetActive(false);
+        quitButton.SetActive(true);
+    }
+
+    public void onReplayClicked()
+    {
+        lobbyList.SetActive(false);
+        playButton.SetActive(false);
+        replayButton.SetActive(false);
+        quitButton.SetActive(true);  
     }
 
 

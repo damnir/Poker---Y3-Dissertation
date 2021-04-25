@@ -248,9 +248,11 @@ public class DataManager : NetworkBehaviour
                     
                     case Stage.Showdown:
                         flipCards();
+                        game.addTurn("server", "win", (int)mainPot.Value);
 
                         determineWinner();
                         pushNewRound(); //DB GAME REPLAY
+
                         playerHands.Clear();
                         prevStage = currentStage;
                         currentStage = Stage.Deal; 
@@ -436,6 +438,8 @@ public class DataManager : NetworkBehaviour
     {
         if(NetworkManager.Singleton.LocalClientId == id)
         {
+            game.addTurn(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, "fold", 0); //GAME DB REPLAY
+
             GetLocalPlayerObject().GetComponent<Player>().fold();
         }
     }
@@ -445,6 +449,8 @@ public class DataManager : NetworkBehaviour
     {
         if(NetworkManager.Singleton.LocalClientId == id)
         {
+            game.addTurn(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, "call", 0); //GAME DB REPLAY
+
             GetLocalPlayerObject().GetComponent<Player>().call();
         }
     }
@@ -549,6 +555,8 @@ public class DataManager : NetworkBehaviour
 
         switch(stage){
             case Stage.Flop1:
+                game.addTurn("server", "flop1", (int)mainPot.Value);
+
                 for (int i = 0; i < 3; i++)
                 {
                     card = getRandomCard();
@@ -558,12 +566,16 @@ public class DataManager : NetworkBehaviour
                 postFlopClientRpc(riverCards, 3, clientRpcParams);
                 break;
             case Stage.Flop2:
+                game.addTurn("server", "flop2", (int)mainPot.Value);
+
                 card = getRandomCard();
                 game.addRiverCard(card);
                 riverCards[3] = card;
                 postFlopClientRpc(riverCards, 4, clientRpcParams);
                 break;
             case Stage.Flop3:
+                game.addTurn("server", "flop3", (int)mainPot.Value);
+
                 card = getRandomCard();
                 game.addRiverCard(card);
                 riverCards[4] = card;
@@ -645,7 +657,7 @@ public class DataManager : NetworkBehaviour
 
     [ServerRpc(RequireOwnership = false)]
     public void playerCallServerRpc(ulong senderID, ulong bet) {
-        game.addTurn(GetPlayerNetworkObject(senderID).GetComponent<Player>().netId.Value, "call", (int)bet); //GAME DB REPLAY
+        game.addTurn(GetPlayerNetworkObject(senderID).GetComponent<Player>().netId.Value, "call", (int)currentBet.Value); //GAME DB REPLAY
 
         actionTaken = true;
 
@@ -680,6 +692,8 @@ public class DataManager : NetworkBehaviour
 
     public void callBlindPlayer(ulong blind)
     {
+        game.addTurn(GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().netId.Value, "call", (int)blind); //GAME DB REPLAY
+
         GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().callBlind(blind);
         playerOrder.Add(playerOrder[0]);
         playerOrder.RemoveAt(0);

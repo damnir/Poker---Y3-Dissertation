@@ -525,16 +525,17 @@ public class LoginManager : NetworkBehaviour
             {
                 var player = JsonConvert.DeserializeObject<Dictionary<string, string>>(pp);
 
-                Debug.Log(pp);
-                Debug.Log(player["netId"]);
+                Debug.Log(games.Key);
             }
             foreach(string oo in game.round)
             {
                 //Debug.Log(oo);
                 //Newa
             }
+            GameObject.Find("ReplayMode").GetComponent<ReplayGame>().game = game;
 
         }
+
 
 
     }
