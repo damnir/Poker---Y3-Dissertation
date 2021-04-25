@@ -46,6 +46,7 @@ public class ButtonManager : NetworkBehaviour
     public GameObject replayButton;
     public GameObject replayScene;
     public GameObject quitButton;
+    public GameObject backButton;
 
 
     //leaderboard vars
@@ -306,19 +307,32 @@ public class ButtonManager : NetworkBehaviour
 
     public void onPlayClicked()
     {
+        backButton.SetActive(true);
         lobbyList.SetActive(true);
         playButton.SetActive(false);
         replayButton.SetActive(false);
-        quitButton.SetActive(true);
+        quitButton.SetActive(false);
     }
 
     public void onReplayClicked()
     {
+        backButton.SetActive(true);
         lobbyList.SetActive(false);
         playButton.SetActive(false);
         replayButton.SetActive(false);
+        quitButton.SetActive(false);  
+    }
+
+    public void backButtonPress()
+    {
+        backButton.SetActive(false);
+        lobbyList.SetActive(false);
+        playButton.SetActive(true);
+        replayButton.SetActive(true);
         quitButton.SetActive(true);  
     }
+
+
 
 
 }
