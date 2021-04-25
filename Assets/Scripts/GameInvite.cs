@@ -29,6 +29,8 @@ public class GameInvite : MonoBehaviour
     }
     public void onAcceptClick()
     {
+        GameObject.Find("MainGame").GetComponent<Canvas>().enabled = true;
+
         this.transform.SetParent(player.gameObject.transform);
 
         GetLocalPlayerObject().GetComponent<Player>().acceptInvite(lobby);
