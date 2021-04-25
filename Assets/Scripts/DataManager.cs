@@ -438,7 +438,7 @@ public class DataManager : NetworkBehaviour
     {
         if(NetworkManager.Singleton.LocalClientId == id)
         {
-            game.addTurn(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, "fold", 0); //GAME DB REPLAY
+            //game.addTurn(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, "fold", 0); //GAME DB REPLAY
 
             GetLocalPlayerObject().GetComponent<Player>().fold();
         }
@@ -449,7 +449,7 @@ public class DataManager : NetworkBehaviour
     {
         if(NetworkManager.Singleton.LocalClientId == id)
         {
-            game.addTurn(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, "call", 0); //GAME DB REPLAY
+            //game.addTurn(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, "call", 0); //GAME DB REPLAY
 
             GetLocalPlayerObject().GetComponent<Player>().call();
         }
@@ -671,7 +671,7 @@ public class DataManager : NetworkBehaviour
 
     [ServerRpc(RequireOwnership = false)]
     public void playerRaiseServerRpc(ulong senderID, ulong call, ulong bet) {
-        game.addTurn(GetPlayerNetworkObject(senderID).GetComponent<Player>().netId.Value, "raise", (int)bet); //GAME DB REPLAY
+        game.addTurn(GetPlayerNetworkObject(senderID).GetComponent<Player>().netId.Value, "raise", (int)(bet + currentBet.Value)); //GAME DB REPLAY
 
         actionTaken = true;
 
@@ -692,7 +692,7 @@ public class DataManager : NetworkBehaviour
 
     public void callBlindPlayer(ulong blind)
     {
-        game.addTurn(GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().netId.Value, "call", (int)blind); //GAME DB REPLAY
+        //game.addTurn(GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().netId.Value, "call", (int)blind); //GAME DB REPLAY
 
         GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().callBlind(blind);
         playerOrder.Add(playerOrder[0]);
@@ -1171,6 +1171,7 @@ public class DataManager : NetworkBehaviour
         public List<string> winners = new List<string>();
         public string handStength;
         public int win;
+        public string time = DateTime.Now.ToString();
 
         public Game() 
         {

@@ -11,10 +11,7 @@ using static MLAPI.Spawning.NetworkSpawnManager;
 public class ReplayGame : MonoBehaviour
 {
     // Start is called before the first frame update
-    public GameObject pot;
     public GameObject playerObejcts;
-    public GameObject[] river = new GameObject[5];
-    public GameObject[] seats = new GameObject[7];
     public GameObject playerGo;
     public DataManager.Game game;
     public List<GameObject> players = new List<GameObject>();
@@ -23,10 +20,21 @@ public class ReplayGame : MonoBehaviour
     public GameObject player;
     public int stage = 0;
 
+    [Header("Scene Objects")]
+    public GameObject[] river = new GameObject[5];
+    public GameObject[] seats = new GameObject[7];
+    public GameObject pot;
+
+    [Header("Buttons")]
+    public GameObject startButton;
+    public GameObject nextButton;
+    public GameObject finishButton;
+
+
     public void onStartClicked()
     {
-        //string ownNetId = GetLocalPlayerObject().GetComponent<Player>().netId.Value;
-        string ownNetId = "poo";
+        string ownNetId = GetLocalPlayerObject().GetComponent<Player>().netId.Value;
+        //string ownNetId = "poo";
         //initialise players
         foreach(string value in game.players)
         {
@@ -45,9 +53,12 @@ public class ReplayGame : MonoBehaviour
             if(player["netId"] == ownNetId)
             {
                 ownPlayer = newPlayer;
+                newPlayer.GetComponent<PlayerRe>().setOwn();
                 //newPlayer.
             }
         }
+        startButton.SetActive(false);
+        nextButton.SetActive(true);
 
     }
 
@@ -106,6 +117,11 @@ public class ReplayGame : MonoBehaviour
 
         }
         stage++;
+        if(stage == game.round.Count)
+        {
+            nextButton.SetActive(false);
+            finishButton.SetActive(true);
+        }
     }
 
     public GameObject getPlayer(string netId)
@@ -120,6 +136,39 @@ public class ReplayGame : MonoBehaviour
 
         return null;
     }
+
+    public void onLeaveClick()
+    {
+        
+        this.gameObject.SetActive(false);
+        reset();
+
+    }
+
+    public void reset()
+    {
+        stage = 0;
+        foreach(GameObject card in river)
+        {
+            card.SetActive(false);
+        }
+
+        foreach(GameObject player in players)
+        {
+            Destroy(player);
+        }
+
+        startButton.SetActive(true);
+        nextButton.SetActive(false);
+        finishButton.SetActive(false);
+        players.Clear();
+        rankText.text = "";
+        pot.GetComponent<Text>().text = "$0";
+
+        
+
+    }
+
 
 
 }

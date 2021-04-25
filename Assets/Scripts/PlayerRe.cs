@@ -83,6 +83,11 @@ public class PlayerRe : MonoBehaviour
         }
     }
 
+    public void setOwn()
+    {
+        username.GetComponent<Text>().text = "-- [ ME ] --";
+    }
+
     public void endTurn()
     {
         animation.SetActive(false);

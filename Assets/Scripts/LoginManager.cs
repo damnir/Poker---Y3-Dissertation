@@ -501,50 +501,15 @@ public class LoginManager : NetworkBehaviour
         foreach(string player in _game.players)
         {
             var playerD = JsonConvert.DeserializeObject<Dictionary<string, string>>(player);
-            var DBTaskP = DBreference.Child("users").Child(playerD["netId"]).Child("games").Child(key).SetValueAsync(_game.winners);
+            var DBTaskP = DBreference.Child("users").Child(playerD["netId"]).Child("games").Child(key).SetValueAsync(DateTime.Now.ToString());
             yield return new WaitUntil(predicate: () => DBTaskP.IsCompleted);
 
         }
     }
 
-    public void test()
+    public void replay(string _id, bool winsOnly, bool pot)
     {
-        StartCoroutine(readGames());
-    }
-
-    public IEnumerator readGames()
-    {
-        var DBTask = DBreference.Child("games").GetValueAsync();
-        
-        //DBreference.UpdateChildrenAsync(_game);
-        yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
-
-        DataSnapshot data = DBTask.Result;
-
-
-        foreach(DataSnapshot games in data.Children)
-        {
-            DataManager.Game game = DataManager.Game.CreateFromJSON(games.GetRawJsonValue());
-
-            foreach(string pp in game.players)
-            {
-                var player = JsonConvert.DeserializeObject<Dictionary<string, string>>(pp);
-
-                Debug.Log(games.Key);
-            }
-            foreach(string oo in game.round)
-            {
-                //Debug.Log(oo);
-                //Newa
-            }
-            GameObject.Find("ReplayMode").GetComponent<ReplayGame>().game = game;
-
-        }
-    }
-
-    public void replay(string _id)
-    {
-        StartCoroutine(PopulateReplay(_id, true, true));
+        StartCoroutine(PopulateReplay(_id, winsOnly, pot));
     }
 
     public IEnumerator PopulateReplay(string _id, bool orderByWins, bool orderByPot)
@@ -575,6 +540,25 @@ public class LoginManager : NetworkBehaviour
             DataManager.Game game = DataManager.Game.CreateFromJSON(json);
 
             GameObject newGame = Instantiate(replayGo, new Vector3(transform.position.x, transform.position.y, transform.position.z), Quaternion.identity);
+            if(orderByPot)
+            {
+                //do nothing
+            }
+            else if(orderByWins)
+            {
+                if(!game.winners.Contains(_id))
+                {
+                    continue;
+                }
+            }
+            else if(!orderByWins)
+            {
+                if(game.winners.Contains(_id))
+                {
+                    continue;
+                }
+            }
+            
             string win;
             if(game.winners.Contains(_id))
             {
@@ -584,7 +568,7 @@ public class LoginManager : NetworkBehaviour
             {
                 win = "( - LOST - )";
             }
-            newGame.GetComponent<ReplayGo>().setValues(game, String.Format("{0} |  Pot: ${1} | Players: {2} | 12/04/2020 13:45", win, game.win, game.players.Count));
+            newGame.GetComponent<ReplayGo>().setValues(game, String.Format("{0} |  Pot: ${1} | Players: {2} | {3}", win, game.win, game.players.Count, game.time));
             newGame.transform.SetParent(replayList.transform, false);
         }
 

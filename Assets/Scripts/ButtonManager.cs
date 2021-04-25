@@ -53,10 +53,12 @@ public class ButtonManager : NetworkBehaviour
     //leaderboard vars
     private bool leadFriendsOnly;
     private string sortBy;
+    private bool winsOnly;
 
     void Start() {
         //NetworkManager.Singleton.StartServer();
         leadFriendsOnly = false;
+        winsOnly = false;
         sortBy = "cash";
     }
 
@@ -317,7 +319,7 @@ public class ButtonManager : NetworkBehaviour
 
     public void onReplayClicked()
     {
-        LoginManager.instance.replay(GetLocalPlayerObject().GetComponent<Player>().netId.Value);
+        LoginManager.instance.replay(GetLocalPlayerObject().GetComponent<Player>().netId.Value, false, true);
         backButton.SetActive(true);
         lobbyList.SetActive(false);
         playButton.SetActive(false);
@@ -341,7 +343,34 @@ public class ButtonManager : NetworkBehaviour
     public void replay()
     {
         replayScene.SetActive(true);
+    }
 
+    public void WinsOnly()
+    {
+        winsOnly = true;
+        updateReplay();
+    }
+
+    public void LosesOnly()
+    {
+        winsOnly = false;
+        updateReplay();
+    }
+
+    public void updateReplay()
+    {
+        LoginManager.instance.replay(GetLocalPlayerObject().GetComponent<Player>().netId.Value, winsOnly, false);
+ 
+    }
+
+    public void updateReplayNormal()
+    {
+        LoginManager.instance.replay(GetLocalPlayerObject().GetComponent<Player>().netId.Value, false, true);
+    }
+
+    public void orderByPot()
+    {
+        LoginManager.instance.replay(GetLocalPlayerObject().GetComponent<Player>().netId.Value, false, true);
     }
 
 

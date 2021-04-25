@@ -1178,7 +1178,7 @@ MonoBehaviour:
   win: {fileID: 6872357290563571560}
   card1Go: {fileID: 6697486692557642315}
   card2Go: {fileID: 2080580241206705619}
-  username: {fileID: 0}
+  username: {fileID: 961279476191195634}
 --- !u!1 &6697486692557642315
 GameObject:
   m_ObjectHideFlags: 0
