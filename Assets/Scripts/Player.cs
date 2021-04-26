@@ -245,6 +245,8 @@ public class Player : NetworkBehaviour
         else{
             gameState.Value = GameState.Ingame;
         }
+        changeText("Name", username.Value );
+
     }
 
     public void resetState()
@@ -501,6 +503,11 @@ public class Player : NetworkBehaviour
             return;
         }
         LoginManager.instance.showProfileClient(netId.Value, GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().netId.Value, currentLobby.Value.name);
+    }
+
+    public void showProfileOwner()
+    {
+        LoginManager.instance.showProfileClient(netId.Value, GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().netId.Value, "Menu");
 
     }
 

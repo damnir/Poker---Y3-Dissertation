@@ -375,6 +375,16 @@ public class ButtonManager : NetworkBehaviour
         LoginManager.instance.replay(GetLocalPlayerObject().GetComponent<Player>().netId.Value, false, true);
     }
 
+    public void Quit()
+    {
+        Application.Quit();
+    }
+
+    public void showProfileOwner()
+    {
+        GetLocalPlayerObject().GetComponent<Player>().showProfileOwner();
+    }
+
 
 
 
