@@ -56,7 +56,7 @@ public class ButtonManager : NetworkBehaviour
     private bool winsOnly;
 
     void Start() {
-        //NetworkManager.Singleton.StartServer();
+        //NetworkManager.Singleton.StartClient();
         leadFriendsOnly = false;
         winsOnly = false;
         sortBy = "cash";
