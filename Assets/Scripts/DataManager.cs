@@ -290,9 +290,10 @@ public class DataManager : NetworkBehaviour
     public void clientDisconnect(ulong id) {
 
         if(IsServer){
-            Debug.Log("Client Disconnected. ID: " + id);
             //GameObject dp = players.Find(x => x.Contains.GetComponent<Player>().getPlayerID());
             if(playerIds.Contains(id)){
+                Debug.Log("Client Disconnected. ID: " + id);
+
                 playerNum--;
                 for(int i = 0; i < seatOrder.Length; i++) {
                     if(seatOrder[i] == id){
@@ -721,7 +722,7 @@ public class DataManager : NetworkBehaviour
         playerNum++;
         foreach(string cc in riverCards)
         {
-            Debug.Log("Card: " + cc);
+            //Debug.Log("Card: " + cc);
         }
     }
 
@@ -730,7 +731,7 @@ public class DataManager : NetworkBehaviour
     {
         for(int i = 0; i < rCards.Length; i++)
         {
-            Debug.Log("Card: " + rCards[i]);
+            //Debug.Log("Card: " + rCards[i]);
             
             if(rCards[i] == "" || rCards[i] == null)
             {

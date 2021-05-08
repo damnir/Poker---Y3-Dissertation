@@ -1116,7 +1116,7 @@ private IEnumerator UpdateFriendRequests(string _id)
         yield return new WaitUntil(predicate: () => DBTask2.IsCompleted);  
          bool isFriend;
 
-        if(DBTask2.Result.Value == null)
+        if(DBTask2.Result.Value == null && _id != GetLocalPlayerObject().GetComponent<Player>().netId.Value)
         {
             isFriend = false;
         }
@@ -1168,7 +1168,9 @@ private IEnumerator UpdateFriendRequests(string _id)
     {
         Debug.Log("Send invite - before coroutine");
 
-        StartCoroutine(SendGameInviteDB(targetId, _lobby.name, senderUsername));
+        StartCoroutine(SendGameInviteDB(targetId, String.Format("{0} | Players: {1}/7 | ${2}/${3}", _lobby.name,
+         _lobby.GetComponent<DataManager>().playerNumNet.Value, _lobby.GetComponent<DataManager>().smallBlind, 
+         _lobby.GetComponent<DataManager>().bigBlind), senderUsername));
     }
 
     public void clientDisconnect(ulong _id)

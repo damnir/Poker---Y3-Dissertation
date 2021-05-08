@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8092095935720816154}
   - component: {fileID: 6152052079403870995}
-  - component: {fileID: 4114378972462074769}
   m_Layer: 0
   m_Name: DataManager
   m_TagString: Untagged
@@ -44,23 +43,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03d28f93928cc82459777b0566ed0732, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  seat1: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514, type: 3}
-  seat2: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514, type: 3}
-  seat3: {fileID: 6999181397617201587, guid: 813ace3e0b80e8a49979a8ba21901514, type: 3}
---- !u!114 &4114378972462074769
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1810063276154830070}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 209037615, guid: 01701b64234b4d523d8045142cbc73fa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  NetworkedInstanceId: 0
-  PrefabHash: 16309893250647212442
-  PrefabHashGenerator: DataManager
-  AlwaysReplicateAsRoot: 0
-  DontDestroyWithOwner: 0
+  river:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  riverCards:
+  - 
+  - 
+  - 
+  - 
+  - 
+  deck: []
+  players: []
+  playerIds: 
+  playerNum: 0
+  seatOrder: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  playerOrder: 
+  playerOrderRe: 
+  gameActive: 0
+  time: 0
+  maxPlayers: 0
+  dealer: 0
+  smallBlind: 0
+  bigBlind: 0
+  sidePot: 0
+  playerNumNet:
+    m_InternalValue: 0
+  buttons: {fileID: 0}
+  pot: {fileID: 0}
+  handRankText: {fileID: 0}
+  actionTaken: 0

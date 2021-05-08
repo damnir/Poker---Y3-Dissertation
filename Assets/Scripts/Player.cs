@@ -78,17 +78,11 @@ public class Player : NetworkBehaviour
         if(IsOwner){
             clientID.Value = OwnerClientId;
 
-            Text t1 = GameObject.Find("CLIENT_TEXT").GetComponent<Text>();
-            Text t2 = GameObject.Find("CLIENT_TEXT2").GetComponent<Text>();
-
             cash.Value = 0;
 
-            t1.text = "Client ID: " + OwnerClientId;
-            t2.text = "Client ID: " + OwnerClientId;
             ownerGo.SetActive(true);
             betState.Value = BetState.Fold;
             clientSideRpc = new ulong[]{NetworkManager.Singleton.LocalClientId };
-
         }
 
         GameObject.Find("Lobbies").GetComponent<Lobbies>().addPlayer(this.gameObject);
@@ -108,16 +102,16 @@ public class Player : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {   
-        if(IsOwner && currentLobby.Value != null)
-        {
-            currentLobby.Value.GetComponent<DataManager>().SyncObjectsServerRpc(clientSideRpc);
-        }
 
         try {
-                    if(pos.Value != null)
-        {
-            this.transform.position = GameObject.Find(pos.Value).transform.position; 
-        }
+            if(IsOwner && currentLobby.Value != null)
+            {
+                currentLobby.Value.GetComponent<DataManager>().SyncObjectsServerRpc(clientSideRpc);
+            }
+            if(pos.Value != null)
+            {
+                this.transform.position = GameObject.Find(pos.Value).transform.position; 
+            }
             //this.transform = GameObject.Find(pos.Value).transform;
             lobbyBet = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
         }catch(NullReferenceException e) { }
@@ -309,6 +303,8 @@ public class Player : NetworkBehaviour
         acceptInvite(lobby.name);
     }
 
+
+
     //---------------------------------------------------------------
     //Refactored
 
@@ -419,6 +415,7 @@ public class Player : NetworkBehaviour
     public void gameInvite(string lobbyName, string username)
     {
         GameInvite.GetComponent<GameInvite>().setValues(username, lobbyName);
+        Debug.Log("LOBBY NAME: " + lobbyName);
         GameInvite.transform.position = GameObject.Find("GameInvitePlaceholder").transform.position;
         GameInvite.SetActive(true);
     }
@@ -431,6 +428,16 @@ public class Player : NetworkBehaviour
             //Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
             //currentSeat.Value = 0;
             //pos.Value = "PlayerPlaceHolder";
+        StartCoroutine(poo(lobbyName));
+    }
+
+    public void accept(string lobbyName)
+    {
+                sitUp();
+        ButtonManager.instance.showSeats();
+            Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
+            currentSeat.Value = 0;
+            pos.Value = "PlayerPlaceHolder";
         StartCoroutine(poo(lobbyName));
     }
 

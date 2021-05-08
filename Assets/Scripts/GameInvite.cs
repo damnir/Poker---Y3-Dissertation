@@ -6,6 +6,7 @@ using MLAPI.NetworkVariable;
 using MLAPI.Messaging;
 using static MLAPI.Spawning.NetworkSpawnManager;
 using TMPro;
+using System;
 
 public class GameInvite : MonoBehaviour
 {
@@ -33,9 +34,9 @@ public class GameInvite : MonoBehaviour
 
         this.transform.SetParent(player.gameObject.transform);
 
-        GetLocalPlayerObject().GetComponent<Player>().acceptInvite(lobby);
+        GetLocalPlayerObject().GetComponent<Player>().accept(lobby.Substring(0, lobby.IndexOf(" ")));
         this.gameObject.SetActive(false);
-        GameObject.Find("Menu").SetActive(false);
+        //GameObject.Find("Menu").SetActive(false);
         //Destroy(this.gameObject);
     }
 

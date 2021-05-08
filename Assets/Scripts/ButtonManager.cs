@@ -16,11 +16,12 @@ using static MLAPI.Spawning.NetworkSpawnManager;
 
 public class ButtonManager : NetworkBehaviour
 {
+    [Header("Init Objects")]
     public GameObject buttonServer;
     public GameObject buttonClient;
-    public GameObject buttonLobby2;
     public GameObject lobbyList;
     public GameObject data;
+    [Header("Bet Objects")]
     public GameObject foldButton;
     public GameObject callButton;
     public GameObject raiseButton;
@@ -28,10 +29,12 @@ public class ButtonManager : NetworkBehaviour
     public GameObject callText;
     public GameObject raiseText;
     public GameObject checkText;
+    [Header("Login Screen")]
     public GameObject loginScreen;
     public GameObject friendsList;
     public GameObject friendsListInGame;
     public GameObject loadingScreen;
+    [Header("In Game Objects")]
     public GameObject seats;
     public GameObject sitUpButton;
     public GameObject leaveButton;
@@ -41,6 +44,7 @@ public class ButtonManager : NetworkBehaviour
     public GameObject messageGo;
     public TMP_InputField messageInput;
     public GameObject bing;
+    [Header("Menu Objects")]
     public GameObject leaderboard;
     public GameObject playButton;
     public GameObject replayButton;
@@ -264,6 +268,7 @@ public class ButtonManager : NetworkBehaviour
         GameObject newMessage = Instantiate(messageGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
         newMessage.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = message;
         newMessage.transform.SetParent(messageBox.transform, false);
+        Debug.Log("MESSAGE: " + message);
         bing.SetActive(true);
 
     }
