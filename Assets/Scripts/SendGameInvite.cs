@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using MLAPI;
+﻿using UnityEngine;
 using MLAPI.Messaging;
 using static MLAPI.Spawning.NetworkSpawnManager;
 
@@ -14,8 +11,6 @@ public class SendGameInvite : MonoBehaviour
 
     public void sendInvite()
     {
-        //clientRpcParams.Send.TargetClientIds = new ulong[1];
-        //clientRpcParams.Send.TargetClientIds[0] = 
 
         Debug.Log("Send invite called Button");
         string targetId = this.GetComponent<FriendRequest>().netId;

@@ -4,7 +4,6 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using Newtonsoft.Json;
-using MLAPI;
 using TMPro;
 using static MLAPI.Spawning.NetworkSpawnManager;
 
@@ -34,7 +33,6 @@ public class ReplayGame : MonoBehaviour
     public void onStartClicked()
     {
         string ownNetId = GetLocalPlayerObject().GetComponent<Player>().netId.Value;
-        //string ownNetId = "poo";
         //initialise players
         foreach(string value in game.players)
         {
@@ -54,7 +52,6 @@ public class ReplayGame : MonoBehaviour
             {
                 ownPlayer = newPlayer;
                 newPlayer.GetComponent<PlayerRe>().setOwn();
-                //newPlayer.
             }
         }
         startButton.SetActive(false);

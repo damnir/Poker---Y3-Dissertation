@@ -11,6 +11,7 @@ using static MLAPI.Spawning.NetworkSpawnManager;
 using System.Linq;
 using TMPro;
 
+//This class manages all game data
 public class DataManager : NetworkBehaviour
 {
     public GameObject[] river = new GameObject[5];
@@ -93,29 +94,29 @@ public class DataManager : NetworkBehaviour
 
     public NetworkVariable<ulong> currentBet = new NetworkVariable<ulong>(new NetworkVariableSettings
     {
-        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        WritePermission = NetworkVariablePermission.Everyone,
         ReadPermission = NetworkVariablePermission.Everyone
     });
     public NetworkVariable<ulong> previousBet = new NetworkVariable<ulong>(new NetworkVariableSettings
     {
-        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        WritePermission = NetworkVariablePermission.Everyone, 
         ReadPermission = NetworkVariablePermission.Everyone
     });
     public NetworkVariable<ulong> mainPot = new NetworkVariable<ulong>(new NetworkVariableSettings
     {
-        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        WritePermission = NetworkVariablePermission.Everyone, 
         ReadPermission = NetworkVariablePermission.Everyone
     });
 
     public NetworkList<string> messages = new NetworkList<string>(new NetworkVariableSettings
     {
-        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        WritePermission = NetworkVariablePermission.Everyone,
         ReadPermission = NetworkVariablePermission.Everyone
     });
 
     public NetworkVariableInt playerNumNet = new NetworkVariableInt(new NetworkVariableSettings
     {
-        WritePermission = NetworkVariablePermission.Everyone, //CHANGE THIS PERMISSION TO SERVER/OWNER ONLY LATER
+        WritePermission = NetworkVariablePermission.Everyone, 
         ReadPermission = NetworkVariablePermission.Everyone
     });
 
@@ -130,7 +131,7 @@ public class DataManager : NetworkBehaviour
 
     void Start()
     {
-        NetworkManager.Singleton.OnClientDisconnectCallback += clientDisconnect; //GETS CALLED ON ALL LOBBIES -- FIX
+        NetworkManager.Singleton.OnClientDisconnectCallback += clientDisconnect; // set disconnect callback
     }
 
     public override void NetworkStart()
@@ -142,20 +143,19 @@ public class DataManager : NetworkBehaviour
         if(IsServer) {
             generateDeck();
             shuffleDeck();
-            messages.OnListChanged += newMessage;
+            messages.OnListChanged += newMessage; //new message listener
 
         }
 
         if(IsClient) {
             Debug.Log("Data Manager - is client");
-            //clientSideRpc = new ulong[]{NetworkManager.Singleton.LocalClientId };
         }
     }
 
     public void newMessage(NetworkListEvent<string> newMessage)
     {
         updateClientParams();
-        newMessageClientRpc(newMessage.Value, clientRpcParams);
+        newMessageClientRpc(newMessage.Value, clientRpcParams); //update client messages
     }
 
     [ClientRpc]
@@ -164,12 +164,12 @@ public class DataManager : NetworkBehaviour
         ButtonManager.instance.updateMessages(_message);
     }
 
-    // Update is called once per frame
+    //Main game loop
     void Update()
     {
         if(IsServer) {
             playerNumNet.Value = playerNum;
-
+            //start game when there is 2 players or mroe
             if(playerNum < 2) {
                 gameActive = false;
             }
@@ -217,7 +217,7 @@ public class DataManager : NetworkBehaviour
                 }
                
                 updateClientParams();
-
+                //check for force win if there is only 1 player left
                 if(prevStage != Stage.Forcewin)
                 {
                     ulong fIpd = checkForceWin();
@@ -227,10 +227,9 @@ public class DataManager : NetworkBehaviour
                         currentStage = Stage.Forcewin;
                     }
                 }
-
+                //switch stages
                 switch (currentStage)
                 {
- 
                     case Stage.Deal:
                         hideCards();
                         deal();
@@ -290,7 +289,7 @@ public class DataManager : NetworkBehaviour
     public void clientDisconnect(ulong id) {
 
         if(IsServer){
-            //GameObject dp = players.Find(x => x.Contains.GetComponent<Player>().getPlayerID());
+            //remove client from the lobby when disconnected
             if(playerIds.Contains(id)){
                 Debug.Log("Client Disconnected. ID: " + id);
 
@@ -322,6 +321,7 @@ public class DataManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void sitUpServerRpc(ulong id)
     {
+        //remove client from the main game loop if they are not sat down
         Debug.Log("sitUp called for id: " + id);
         playerNum--;
 
@@ -355,6 +355,7 @@ public class DataManager : NetworkBehaviour
         return playerNum;
     }
 
+    //update client parameters to only send updates to players in current lobby
     public void updateClientParams() {
         clientRpcParams.Send = new ClientRpcSendParams{ TargetClientIds = new ulong[playerIds.Count]};
 
@@ -364,7 +365,7 @@ public class DataManager : NetworkBehaviour
         }
     }
 
-    //server only function
+    //get player ids from all seats
     public void orderSeats() {
         Array.Clear(seatOrder, 0, seatOrder.Length);
 
@@ -376,6 +377,7 @@ public class DataManager : NetworkBehaviour
         }
     }
 
+    //order players
     public void orderPlayers(bool reOrder) {
         playerOrder.Clear();
         int folded = 0;
@@ -383,21 +385,21 @@ public class DataManager : NetworkBehaviour
             foreach (ulong id in seatOrder)
             {
                 if(id != 0 && !GetPlayerNetworkObject((ulong)id).GetComponent<Player>().folded.Value) {
-                    playerOrder.Add(id);
+                    playerOrder.Add(id); //add only players that are not folded
                 }
                 else if (id != 0 && GetPlayerNetworkObject((ulong)id).GetComponent<Player>().folded.Value){
                     folded++;
                 }
             } 
-            playerOrder.Reverse();
+            playerOrder.Reverse(); //reverse to make the order clockwise
 
-            for(int i = 0; i < dealer-folded-1; i++){
+            for(int i = 0; i < dealer-folded-1; i++){ //account for dealer
                 ulong temp = playerOrder[0];
                 playerOrder.Add(temp);
                 playerOrder.RemoveAt(0);
             }
         }
-        else
+        else //reorder if new round hasn't started
         {
             foreach (ulong id in seatOrder)
             {
@@ -416,7 +418,7 @@ public class DataManager : NetworkBehaviour
         }
     }
 
-    public void flipCards()
+    public void flipCards() //show all player cards
     {
         foreach(GameObject player in players)
         {
@@ -425,7 +427,7 @@ public class DataManager : NetworkBehaviour
         }
     }
 
-    public void hideCards()
+    public void hideCards() //hide player pot cards
     {
         foreach(GameObject player in players)
         {
@@ -434,17 +436,17 @@ public class DataManager : NetworkBehaviour
         }
     }
 
+    //force client to fold if they didn't confirm their action
     [ClientRpc]
     public void forceFoldClientRpc(ulong id)
     {
         if(NetworkManager.Singleton.LocalClientId == id)
         {
-            //game.addTurn(GetPlayerNetworkObject(id).GetComponent<Player>().netId.Value, "fold", 0); //GAME DB REPLAY
-
             GetLocalPlayerObject().GetComponent<Player>().fold();
         }
     }
 
+    //force client to check if they didn't confirm their action
     [ClientRpc]
     public void forceCallClientRpc(ulong id)
     {
@@ -456,6 +458,7 @@ public class DataManager : NetworkBehaviour
         }
     }
 
+    //update pot after change
     [ClientRpc]
     public void updatePotClientRpc(ClientRpcParams clientRpcParams)
     {
@@ -473,7 +476,7 @@ public class DataManager : NetworkBehaviour
 
     [ClientRpc]
     public void nextTurnClientRpc(ulong id) {
-        if(id == NetworkManager.Singleton.LocalClientId) {
+        if(id == NetworkManager.Singleton.LocalClientId) { //show buttons if turn
             buttons.SetActive(true);
             GetLocalPlayerObject().GetComponent<Player>().turn(true);
         }
@@ -481,20 +484,20 @@ public class DataManager : NetworkBehaviour
 
     [ClientRpc]
     public void endTurnClientRpc(ulong id, ClientRpcParams clientRpcParams) {
-        if(id == NetworkManager.Singleton.LocalClientId) {
+        if(id == NetworkManager.Singleton.LocalClientId) { //hide button if not players turn
             buttons.SetActive(false);
             GetLocalPlayerObject().GetComponent<Player>().turn(false);
         }
     }
 
-    public void endTurn()
+    public void endTurn() //end turn and chekc if action needs to be forced
     {
         if(actionTaken)
         {
-            endTurnClientRpc(playerOrder[0], clientRpcParams);
+            endTurnClientRpc(playerOrder[0], clientRpcParams); 
             if(!GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().folded.Value)
             {
-                playerOrderRe.Add(playerOrder[0]);//////////////////
+                playerOrderRe.Add(playerOrder[0]);
             }
             playerOrder.RemoveAt(0);
         }
@@ -512,7 +515,7 @@ public class DataManager : NetworkBehaviour
         actionTaken = false;
     }
 
-    public void deal () {
+    public void deal () { //deal new hole cards
         game.clearGame(); //GAME DB REPLAY
         Array.Clear(riverCards, 0, 5);
         updateHandRankTextClientRpc("", clientRpcParams);
@@ -548,7 +551,7 @@ public class DataManager : NetworkBehaviour
         callBlindPlayer(bigBlind);
     }
 
-    public void postFlop(Stage stage)
+    public void postFlop(Stage stage) //deal new game card(s), start of new betting round
     {
         currentBet.Value = 0;
         previousBet.Value = 0;
@@ -585,7 +588,7 @@ public class DataManager : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
+    [ClientRpc] //send update to clients
     public void postFlopClientRpc(string[] cards, int stage, ClientRpcParams clientRpcParams) {
         if(GetLocalPlayerObject().GetComponent<Player>().currentLobby.Value == this.gameObject)
         {
@@ -599,7 +602,7 @@ public class DataManager : NetworkBehaviour
         }
     }
 
-    public void endStage() {
+    public void endStage() {//reset all data for new round
         resetBetStateClientRpc(clientRpcParams);
         updatePotClientRpc(clientRpcParams);
         generateDeck();
@@ -608,14 +611,14 @@ public class DataManager : NetworkBehaviour
         time -=(float)5.5;
     }
 
-    [ClientRpc]
+    [ClientRpc] //reset river cards
     public void endStageClientRpc(ClientRpcParams clientRpcParams) {
         foreach(GameObject card in river) {
             card.SetActive(false);
         }
     }
 
-    [ClientRpc]
+    [ClientRpc] //get client cards ready to evaluate
     public void playerEndClientRpc(string[] riverCards, ClientRpcParams clientRpcParams)
     {
         if(GetLocalPlayerObject().GetComponent<Player>().folded.Value == true)
@@ -635,7 +638,7 @@ public class DataManager : NetworkBehaviour
         addHandServerRpc(hand.pId, hand.rank, hand.strength, hand.text);
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc(RequireOwnership = false)] //post processed hand to server for win evaluation
     public void addHandServerRpc(ulong id, int rank, int strength, string ranktext)
     {
         Hand newHand = new Hand();
@@ -691,7 +694,7 @@ public class DataManager : NetworkBehaviour
         time = NetworkManager.Singleton.NetworkTime+(float)0.15; //force loop update
     }
 
-    public void callBlindPlayer(ulong blind)
+    public void callBlindPlayer(ulong blind) //force blind on player
     {
         //game.addTurn(GetPlayerNetworkObject(playerOrder[0]).GetComponent<Player>().netId.Value, "call", (int)blind); //GAME DB REPLAY
 
@@ -720,13 +723,9 @@ public class DataManager : NetworkBehaviour
         playerIds.Add(id);
         Debug.Log("Added player [ServerRpc]: Client ID: " + id);
         playerNum++;
-        foreach(string cc in riverCards)
-        {
-            //Debug.Log("Card: " + cc);
-        }
     }
 
-    [ClientRpc]
+    [ClientRpc] //sync all game data when a new client connects
     public void SyncPreviousClientRpc(string[] rCards, ClientRpcParams clientRpcParams = default)
     {
         for(int i = 0; i < rCards.Length; i++)
@@ -768,7 +767,7 @@ public class DataManager : NetworkBehaviour
         }
     }
 
-    public void generateDeck()
+    public void generateDeck() //generate deck, 51 cards
     {
         deck.Clear();
         foreach (string s in suits)
@@ -780,7 +779,7 @@ public class DataManager : NetworkBehaviour
         }
     }
 
-    public void shuffleDeck()
+    public void shuffleDeck() //shuffle deck
     {
         for(int i = 51; i > 1; i--)
         {
@@ -813,7 +812,7 @@ public class DataManager : NetworkBehaviour
         int len = cards.Count;
         int[] v = new int[len];
         string[] s = new string[len];
-
+        //split into value (v) and suit (s)
         for(int i = 0; i < len; i++)
         {
             string[] split = cards[i].Split('-');
@@ -1049,14 +1048,14 @@ public class DataManager : NetworkBehaviour
             hand.rank = 10;
             hand.strength = rank.highCard;
         }
-        //handRankText.text = handText; dajspkidj alksjd oalskjdoasid jaosdj aios jdoi
+        //handRankText.text = handText;
 
         hand.pId = NetworkManager.Singleton.LocalClientId;
         return hand;
 
     }
 
-    public void determineWinner()
+    public void determineWinner() //pick the highest rank from all hands 
     {
         playerHands.Sort((x,y) => x.rank.CompareTo(y.rank));
         List<Hand> winners = new List<Hand>();
@@ -1114,7 +1113,7 @@ public class DataManager : NetworkBehaviour
         game.setWin((int)win, winners[0].text);
     }
 
-    public ulong checkForceWin()
+    public ulong checkForceWin() //call if there is only 1 player left to force win
     {
         int folded = 0;
         ulong pId = 0;
@@ -1134,7 +1133,7 @@ public class DataManager : NetworkBehaviour
         return 0;
     }
 
-    public class Game
+    public class Game //DB Game class 
     {
         public class Player
         {

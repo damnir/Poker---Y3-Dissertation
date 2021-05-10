@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -42,9 +42,9 @@ public class HandEvaluation : MonoBehaviour
 
     public Rank evaluateHand(List<string> cards) {
 
-        int len = cards.Count;
-        int[] v = new int[len];
-        string[] s = new string[len];
+        int len = cards.Count; //no. of cards
+        int[] v = new int[len]; //values
+        string[] s = new string[len]; //suits
 
         for(int i = 0; i < len; i++)
         {
@@ -62,14 +62,7 @@ public class HandEvaluation : MonoBehaviour
 
         }
 
-        int highCard;
-        if(v[0] > v[1])
-        {
-            highCard = v[0];
-        }
-        else{
-            highCard = v[1];
-        }
+        int highCard = v.Max();
 
         string[] sOg = (string[])s.Clone(); //for straight and royal flush
         Array.Sort(sOg);
@@ -132,12 +125,12 @@ public class HandEvaluation : MonoBehaviour
                     Debug.Log("STRAIGHT!");
                     rank.straight = v[i]*5-10;;
                     //check for royalflush
-                    if(countF >= 5)
+                    if(countF >= 4)
                     {
                         string[] royal = new string[5];
-                        Array.Copy(s, i-4, royal, 0, 5);
+                        Array.Copy(s, i-5, royal, 0, 5);
 
-                        if(royal.All(ss => string.Equals(s[i], ss, StringComparison.InvariantCultureIgnoreCase)))
+                        if(royal.All(ss => string.Equals(s[i-1], ss, StringComparison.InvariantCultureIgnoreCase)))
                         {
                             Debug.Log("STRAIGHT FLUSH!!");
                             //add all values together for strength

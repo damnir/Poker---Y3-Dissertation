@@ -10,7 +10,7 @@ public class FriendRequest : MonoBehaviour
     public TMP_Text usernameTMP;
     public string netId;
     public string username;
-
+    //set all data
     public void init(string _username, string _netId)
     {
         netId = _netId;
@@ -18,6 +18,7 @@ public class FriendRequest : MonoBehaviour
         usernameTMP.text = _username;
     }
 
+    //on accept, make a db call to accept the friend request
     public void onAcceptClick()
     {
         string cId = GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().netId.Value;
@@ -28,6 +29,7 @@ public class FriendRequest : MonoBehaviour
         Destroy(this);
     }
 
+    //show object infro as a profile
     public void onViewClick()
     {
         LoginManager.instance.showProfileClient(netId, GetLocalPlayerObject().GetComponent<Player>().netId.Value, "Menu");

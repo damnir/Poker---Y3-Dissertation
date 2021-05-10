@@ -90,8 +90,7 @@ public class Player : NetworkBehaviour
         
         transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
   
-            //this.transform.SetParent(GameObject.Find("Menu").transform, false);
-            this.transform.position = GameObject.Find("PlayerPlaceHolder").transform.position;
+        this.transform.position = GameObject.Find("PlayerPlaceHolder").transform.position;
         
 
         changeText("Name", ("Client ID: " + OwnerClientId.ToString()) );
@@ -112,7 +111,6 @@ public class Player : NetworkBehaviour
             {
                 this.transform.position = GameObject.Find(pos.Value).transform.position; 
             }
-            //this.transform = GameObject.Find(pos.Value).transform;
             lobbyBet = currentLobby.Value.GetComponent<DataManager>().currentBet.Value;
         }catch(NullReferenceException e) { }
 
@@ -136,7 +134,7 @@ public class Player : NetworkBehaviour
 
             changeText("Cash", "$" + cash.Value.ToString());
 
-            switch (betState.Value) {  //pls make this less messy it do be really ugluyy
+            switch (betState.Value) { 
                 case BetState.Fold: 
                     foldGo.SetActive(true);
                     betGoText.Value = "<sprite=2>$"+currentBet.Value;
@@ -145,9 +143,7 @@ public class Player : NetworkBehaviour
                     card2.SetActive(false);
                     win.SetActive(false);
                     break;
-                case BetState.Call:
-                    //betGoText.Value = "<sprite=3>$$$";
-                    
+                case BetState.Call:                    
                     if(currentBet.Value < 1)
                     {
                         betGoText.Value = "<sprite=1>Check";
@@ -159,7 +155,6 @@ public class Player : NetworkBehaviour
                     win.SetActive(false);
                     break;
                 case BetState.Raise:
-                    //betGoText.Value = "<sprite=0>$$$";
                     betGo.SetActive(true);
                     foldGo.SetActive(false);
                     card1.SetActive(true);
@@ -303,11 +298,6 @@ public class Player : NetworkBehaviour
         acceptInvite(lobby.name);
     }
 
-
-
-    //---------------------------------------------------------------
-    //Refactored
-
     public void sit(string name) {
         if(IsOwner) {
             currentLobby.Value.GetComponent<DataManager>().addPlayerServerRpc(OwnerClientId);
@@ -324,11 +314,6 @@ public class Player : NetworkBehaviour
         if(currentLobby.Value != null)
         {
             currentLobby.Value.GetComponent<DataManager>().sitUpServerRpc(OwnerClientId);
-            // foreach(GameObject card in currentLobby.Value.GetComponent<DataManager>().river)
-            // {
-            //     card.SetActive(false);
-            // }
-
         }
         Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
         currentSeat.Value = 0;
@@ -422,13 +407,8 @@ public class Player : NetworkBehaviour
 
     public void acceptInvite(string lobbyName)
     {
-
-        //sitUp();
         ButtonManager.instance.showSeats();
-            //Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
-            //currentSeat.Value = 0;
-            //pos.Value = "PlayerPlaceHolder";
-        StartCoroutine(poo(lobbyName));
+        StartCoroutine(UpdateLobby(lobbyName));
     }
 
     public void accept(string lobbyName)
@@ -438,15 +418,12 @@ public class Player : NetworkBehaviour
             Position.Value = GameObject.Find("PlayerPlaceHolder").transform.position;
             currentSeat.Value = 0;
             pos.Value = "PlayerPlaceHolder";
-        StartCoroutine(poo(lobbyName));
+        StartCoroutine(UpdateLobby(lobbyName));
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void leaveLobbyServerRpc()
     {
-        //resetState();
-
-        //currentLobby.Value.GetComponent<DataManager>().addPlayerPL(OwnerClientId);
         leaveLobbyClientRpc();
     }
 
@@ -457,15 +434,13 @@ public class Player : NetworkBehaviour
         this.transform.SetParent(currentLobby.Value.transform);
     }
 
-    public IEnumerator poo(string lobbyName)
+    public IEnumerator UpdateLobby(string lobbyName)
     {
         ButtonManager bm = GameObject.Find("ButtonManager").GetComponent<ButtonManager>();
         bm.setLoadingScreen();
         //changeLobbyServerRpc(lobbyName, OwnerClientId);
         this.transform.SetParent(GameObject.Find("Lobbies").transform);
                         currentLobby.Value = GameObject.Find("Lobbies");
-
-
 
         Lobbies lobbyManager = GameObject.Find("Lobbies").GetComponent<Lobbies>();
 

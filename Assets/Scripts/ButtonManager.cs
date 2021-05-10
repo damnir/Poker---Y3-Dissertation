@@ -1,19 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using MLAPI;
-using MLAPI.Connection;
-using MLAPI.Messaging;
-using MLAPI.Transports.UNET;
-using MLAPI.Serialization.Pooled;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using TMPro;
 using static MLAPI.Spawning.NetworkSpawnManager;
 
 
+//Main UI Manager Class
 public class ButtonManager : NetworkBehaviour
 {
     [Header("Init Objects")]
@@ -66,40 +58,26 @@ public class ButtonManager : NetworkBehaviour
         sortBy = "cash";
     }
 
-    public void onServerClicked()
-    {
-        NetworkManager.Singleton.StartServer();
-        buttonServer.SetActive(false);
-        buttonClient.SetActive(false);
-    }
-
-    public void onClientClicker()
-    {
-        loginScreen.SetActive(true);
-        //lobbyList.SetActive(true);
-
-        NetworkManager.Singleton.StartClient();
-        buttonClient.SetActive(false);
-        buttonServer.SetActive(false);
-
-    }
-
     public void onFoldClicked()
     {
+        //player fold action
         GetLocalPlayerObject().GetComponent<Player>().fold();
     }
 
     public void onCallClicked()
     {
+        //player call action
         GetLocalPlayerObject().GetComponent<Player>().call();
 
     }
 
     public void onRaiseClicked() 
     {
+        //player raise action
         GetLocalPlayerObject().GetComponent<Player>().raise((ulong)slider.GetComponent<Slider>().value);
     }
 
+    //update players call value
     public void updateCall(ulong value)
     {
         if (value > 0)
@@ -108,6 +86,7 @@ public class ButtonManager : NetworkBehaviour
         }
         else
         {
+            //check if the bet is 0
             checkText.GetComponent<TextMeshProUGUI>().text = "<sprite=1>Check";
         }
         if(value < 1)
@@ -117,14 +96,16 @@ public class ButtonManager : NetworkBehaviour
         callText.GetComponent<Text>().text = "$" + value;
     }
 
+    //update players raise value
     public void updateRaise(ulong min, ulong max)
     {
+        //if all in, can only check/fold
         if(min < 1 || max < 1)
         {
             min = 0;
             max = 0;
         }
-        //slider.GetComponent<Slider>().value = min;
+        //update slider values
         slider.GetComponent<Slider>().minValue = min;
         slider.GetComponent<Slider>().maxValue = max;
         raiseText.GetComponent<Text>().text ="$"+(ulong)slider.GetComponent<Slider>().value;
@@ -172,6 +153,7 @@ public class ButtonManager : NetworkBehaviour
 
     public void onFriendsListClick()
     {
+        //active friends list
         if(friendsList.active)
         {
             friendsList.SetActive(false);
@@ -207,6 +189,7 @@ public class ButtonManager : NetworkBehaviour
 
     public void hideSeats()
     {
+        //hide seats once player sits down
         foreach(Transform seat in seats.transform)
         {
             seat.GetComponent<Image>().sprite = Resources.Load<Sprite>("blank");
@@ -229,16 +212,17 @@ public class ButtonManager : NetworkBehaviour
 
     public void onLeaveClick()
     {
+        //player leaves game
         menu.SetActive(true);
         Player player = GetLocalPlayerObject().GetComponent<Player>();
         GameObject.Find("MainGame").GetComponent<Canvas>().enabled = false;
 
-        //GetLocalPlayerObject().GetComponent<Player>().changeLobby(lobby);
         player.currentLobby.Value = null;
     }
 
     public void onChatClick()
     {
+        //show chat box
         if(chatBox.active)
         {
             chatBox.SetActive(false);
@@ -252,6 +236,7 @@ public class ButtonManager : NetworkBehaviour
 
     public void onMessageSendClick()
     {
+        //send new message
         if(messageInput.text == "")
         {
             return;
@@ -264,7 +249,7 @@ public class ButtonManager : NetworkBehaviour
 
     public void updateMessages(string message)
     {
-
+        //update messages
         GameObject newMessage = Instantiate(messageGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
         newMessage.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = message;
         newMessage.transform.SetParent(messageBox.transform, false);
@@ -333,7 +318,6 @@ public class ButtonManager : NetworkBehaviour
         replayButton.SetActive(false);
         quitButton.SetActive(false);  
         replayList.SetActive(true);
-
         //init
     }
 

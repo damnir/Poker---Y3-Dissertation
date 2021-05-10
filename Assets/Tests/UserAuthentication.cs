@@ -35,40 +35,45 @@ namespace Tests
 
             Assert.AreNotEqual(LoginTask.Exception, null);
         }
-                [UnityTest]
+        [UnityTest]
         public IEnumerator IncorrectPassword()
         {
-            // Use the Assert class to test conditions.
-            // Use yield to skip a frame.
-            yield return null;
+            FirebaseAuth auth = FirebaseAuth.DefaultInstance;
+
+            var LoginTask = auth.SignInWithEmailAndPasswordAsync("damir@admin.com", "admin1234567");
+
+            yield return new WaitUntil(predicate: () => LoginTask.IsCompleted);
+
+            Assert.AreNotEqual(LoginTask.Exception, null);
         }
-                        [UnityTest]
+        [UnityTest]
         public IEnumerator RegisterUsernameTaken()
         {
-            // Use the Assert class to test conditions.
-            // Use yield to skip a frame.
-            yield return null;
+             FirebaseAuth auth = FirebaseAuth.DefaultInstance;
+
+            var RegisterTask = auth.CreateUserWithEmailAndPasswordAsync("damir@admin.com", "admin1234567");
+
+            yield return new WaitUntil(predicate: () => RegisterTask.IsCompleted);
+
+            Assert.AreNotEqual(RegisterTask.Exception, null);
         }
-                                [UnityTest]
-                public IEnumerator RegisterEmailTaken()
+        [UnityTest]
+        public IEnumerator RegisterEmailTaken()
         {
-            // Use the Assert class to test conditions.
-            // Use yield to skip a frame.
             yield return null;
         }
-                        [UnityTest]
-                        public IEnumerator RegisterWeakPassword()
+        [UnityTest]
+        public IEnumerator RegisterWeakPassword()
         {
-            // Use the Assert class to test conditions.
-            // Use yield to skip a frame.
+            FirebaseAuth auth = FirebaseAuth.DefaultInstance;
+
+            var RegisterTask = auth.CreateUserWithEmailAndPasswordAsync("newuser@mail.com", "123");
+
+            yield return new WaitUntil(predicate: () => RegisterTask.IsCompleted);
+
+            Assert.AreNotEqual(RegisterTask.Exception, null);
             yield return null;
         }
-                        [UnityTest]
-                                public IEnumerator RegisterPasswordsDontMatch()
-        {
-            // Use the Assert class to test conditions.
-            // Use yield to skip a frame.
-            yield return null;
-        }
+
     }
 }

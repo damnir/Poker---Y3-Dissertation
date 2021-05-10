@@ -60,18 +60,13 @@ public class LoginManager : NetworkBehaviour
 
     void Awake()
     {
-        //Check that all of the necessary dependencies for Firebase are present on the system
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
         {
             dependencyStatus = task.Result;
             if (dependencyStatus == DependencyStatus.Available)
             {
-                //If they are avalible Initialize Firebase
+                //Initialize Firebase
                 InitializeFirebase();
-            }
-            else
-            {
-                Debug.LogError("Could not resolve all Firebase dependencies: " + dependencyStatus);
             }
         });
 
@@ -81,7 +76,6 @@ public class LoginManager : NetworkBehaviour
         }
         else if (instance != null)
         {
-            Debug.Log("Instance already exists, destroying object!");
             Destroy(this);
         }
 
@@ -90,71 +84,38 @@ public class LoginManager : NetworkBehaviour
 
     public void networkDisconnect(ulong id)
     {
-        //LoginManager.instance.clientDisconnect(id);
         StartCoroutine(clientDisconnectDB(id.ToString()));
     }
 
     private void InitializeFirebase()
     {
         Debug.Log("Setting up Firebase Auth");
-        //Set the authentication instance object
         auth = FirebaseAuth.DefaultInstance;
         DBreference = FirebaseDatabase.DefaultInstance.RootReference;
     }
-    public void ClearLoginFeilds()
-    {
-        emailLoginField.text = "";
-        passwordLoginField.text = "";
-    }
-    public void ClearRegisterFeilds()
-    {
-        usernameRegisterField.text = "";
-        emailRegisterField.text = "";
-        passwordRegisterField.text = "";
-        passwordRegisterVerifyField.text = "";
-    }
 
-    //Function for the login button
     public void LoginButton()
     {
         //Call the login coroutine passing the email and password
         StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));
     }
-    //Function for the register button
+
     public void RegisterButton()
     {
         //Call the register coroutine passing the email, password, and username
         StartCoroutine(Register(emailRegisterField.text, passwordRegisterField.text, usernameRegisterField.text));
     }
     
-    //Function for the save button
-    public void SaveDataButton()
-    {
-        StartCoroutine(UpdateUsernameAuth(User.DisplayName));
-        StartCoroutine(UpdateUsernameDatabase(User.DisplayName));
-
-        //StartCoroutine(UpdateXp(50));
-        //StartCoroutine(UpdateKills(100));
-        //StartCoroutine(UpdateDeaths(2));
-        StartCoroutine(UpdateCash(57382));
-    }
-    //Function for the scoreboard button
-    public void ScoreboardButton()
-    {        
-        //StartCoroutine(LoadScoreboardData());
-    }
 
     private IEnumerator Login(string _email, string _password)
     {
         //Call the Firebase auth signin function passing the email and password
         var LoginTask = auth.SignInWithEmailAndPasswordAsync(_email, _password);
-        //Wait until the task completes
+
         yield return new WaitUntil(predicate: () => LoginTask.IsCompleted);
 
         if (LoginTask.Exception != null)
         {
-            //If there are errors handle them
-            Debug.LogWarning(message: $"Failed to register task with {LoginTask.Exception}");
             FirebaseException firebaseEx = LoginTask.Exception.GetBaseException() as FirebaseException;
             AuthError errorCode = (AuthError)firebaseEx.ErrorCode;
 
@@ -182,9 +143,7 @@ public class LoginManager : NetworkBehaviour
         else
         {
             //User is now logged in
-            //Now get the result
             User = LoginTask.Result;
-            Debug.LogFormat("User signed in successfully: {0} ({1})", User.DisplayName, User.Email);
             warningLoginText.text = "";
             confirmLoginText.text = "Welcome Back: " + User.DisplayName + "!";
 
@@ -195,16 +154,12 @@ public class LoginManager : NetworkBehaviour
             StartCoroutine(LoadFriendsList());
             StartCoroutine(clientConnected());
 
-
             yield return new WaitForSeconds(2);
 
-            //usernameField.text = User.DisplayName;
-            ButtonManager.instance.MenuScreen(); // Change to user data UI
+            ButtonManager.instance.MenuScreen();
             confirmLoginText.text = "";
             GameObject.Find("Menu").GetComponent<Canvas>().enabled = true;
 
-            ClearLoginFeilds();
-            ClearRegisterFeilds();
         }
     }
 
@@ -212,19 +167,17 @@ public class LoginManager : NetworkBehaviour
     {
         if (_username == "")
         {
-            //If the username field is blank show a warning
             warningRegisterText.text = "Missing Username";
         }
         else if(passwordRegisterField.text != passwordRegisterVerifyField.text)
         {
-            //If the password does not match show a warning
             warningRegisterText.text = "Password Does Not Match!";
         }
         else 
         {
             //Call the Firebase auth signin function passing the email and password
             var RegisterTask = auth.CreateUserWithEmailAndPasswordAsync(_email, _password);
-            //Wait until the task completes
+
             yield return new WaitUntil(predicate: () => RegisterTask.IsCompleted);
 
             if (RegisterTask.Exception != null)
@@ -254,8 +207,7 @@ public class LoginManager : NetworkBehaviour
             }
             else
             {
-                //User has now been created
-                //Now get the result
+                //User created
                 User = RegisterTask.Result;
 
                 if (User != null)
@@ -263,33 +215,19 @@ public class LoginManager : NetworkBehaviour
                     //Create a user profile and set the username
                     UserProfile profile = new UserProfile{DisplayName = _username};
 
-                    //Call the Firebase auth update user profile function passing the profile with the username
                     var ProfileTask = User.UpdateUserProfileAsync(profile);
-                    //Wait until the task completes
+
                     yield return new WaitUntil(predicate: () => ProfileTask.IsCompleted);
 
-                    if (ProfileTask.Exception != null)
-                    {
-                        //If there are errors handle them
-                        Debug.LogWarning(message: $"Failed to register task with {ProfileTask.Exception}");
-                        warningRegisterText.text = "Username Set Failed!";
-                    }
-                    else
-                    {
-                        //Username is now set
-                        //Now return to login screen
+                    StartCoroutine(UpdateUsernameDatabase(_username));
+                    StartCoroutine(UpdateCash(100000));
+                    StartCoroutine(InitStats(User.UserId));
+                    StartCoroutine(SetOnlineStatus(User.UserId, false));
 
-                        StartCoroutine(UpdateUsernameDatabase(User.DisplayName));
-                        StartCoroutine(UpdateCash(100000));
-                        StartCoroutine(InitStats(User.UserId));
-                        StartCoroutine(SetOnlineStatus(User.UserId, false));
-
-                        //UpdateCash(100000);
-                        ButtonManager.instance.LoginScreen();                        
-                        warningRegisterText.text = "";
-                        ClearRegisterFeilds();
-                        ClearLoginFeilds();
-                    }
+                    //UpdateCash(100000);
+                    ButtonManager.instance.LoginScreen();                        
+                    warningRegisterText.text = "";
+                    
                 }
             }
         }
@@ -319,42 +257,12 @@ public class LoginManager : NetworkBehaviour
 
     }
 
-
-    private IEnumerator UpdateUsernameAuth(string _username)
-    {
-        //Create a user profile and set the username
-        UserProfile profile = new UserProfile { DisplayName = _username };
-
-        //Call the Firebase auth update user profile function passing the profile with the username
-        var ProfileTask = User.UpdateUserProfileAsync(profile);
-        //Wait until the task completes
-        yield return new WaitUntil(predicate: () => ProfileTask.IsCompleted);
-
-        if (ProfileTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {ProfileTask.Exception}");
-        }
-        else
-        {
-            //Auth username is now updated
-        }        
-    }
-
     private IEnumerator UpdateUsernameDatabase(string _username)
     {
-        //Set the currently logged in user username in the database
+        //Set the username from current login
         var DBTask = DBreference.Child("users").Child(User.UserId).Child("username").SetValueAsync(_username);
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
-
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            //Database username is now updated
-        }
     }
 
     private IEnumerator UpdateCash(int _cash)
@@ -363,15 +271,6 @@ public class LoginManager : NetworkBehaviour
         var DBTask = DBreference.Child("users").Child(User.UserId).Child("cash").SetValueAsync(_cash);
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
-
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            //Deaths are now updated
-        }
     }
 
     private IEnumerator LoadUserData()
@@ -380,13 +279,8 @@ public class LoginManager : NetworkBehaviour
         var DBTask = DBreference.Child("users").Child(User.UserId).GetValueAsync();
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
-
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
         
-        else if (DBTask.Result.Value == null)
+        if (DBTask.Result.Value == null) //If logged in for the first time set cash to 100000
         {
             GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().updateCash(100000);
         }
@@ -399,7 +293,6 @@ public class LoginManager : NetworkBehaviour
             GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().updateCash(Int32.Parse(snapshot.Child("cash").Value.ToString()));
             GetPlayerNetworkObject(NetworkManager.Singleton.LocalClientId).GetComponent<Player>().setNetId(User.UserId);
 
-            Debug.Log("Cash updated");
         }
     }
 
@@ -415,9 +308,6 @@ public class LoginManager : NetworkBehaviour
             Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
         }
 
-        else if (DBTask.Result.Value == null)
-        {
-        }
         else
         {
             Debug.Log("Load Friend Request");
@@ -428,8 +318,6 @@ public class LoginManager : NetworkBehaviour
                 Debug.Log("Friend request from: " + dataSnapshot.Child("username").Value);
                 GameObject newFriendRequest = Instantiate(friendRequestGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
                 newFriendRequest.GetComponent<FriendRequest>().init(dataSnapshot.Child("username").Value.ToString(), dataSnapshot.Child("id").Value.ToString());
-                //newFriendRequest.GetComponentInChildren<
-                //newFriendRequest.transform.parent = friendRequestsListGo.transform;
                 newFriendRequest.transform.SetParent(friendRequestsListGo.transform, false);
             }
         }
@@ -448,9 +336,6 @@ public class LoginManager : NetworkBehaviour
             Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
         }
 
-        else if (DBTask.Result.Value == null)
-        {
-        }
         else
         {
             Debug.Log("Load Friend Request");
@@ -461,8 +346,6 @@ public class LoginManager : NetworkBehaviour
                 Debug.Log("Friend request from: " + dataSnapshot.Child("username").Value);
                 GameObject newFriendRequest = Instantiate(friendsGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
                 newFriendRequest.GetComponent<FriendRequest>().init(dataSnapshot.Child("username").Value.ToString(), dataSnapshot.Child("id").Value.ToString());
-                //newFriendRequest.GetComponentInChildren<
-                //newFriendRequest.transform.parent = friendRequestsListGo.transform;
                 newFriendRequest.transform.SetParent(friendsListGo.transform, false);
             }
         }
@@ -470,37 +353,21 @@ public class LoginManager : NetworkBehaviour
 
     public IEnumerator UpdateCashClient(string id, int _cash)
     {
-        //Set the currently logged in user deaths
         var DBTask = DBreference.Child("users").Child(id).Child("cash").SetValueAsync(_cash);
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
-
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            //Deaths are now updated
-        }
     }
 
     public IEnumerator AddNewGame(DataManager.Game _game)
     {
-                Debug.Log("addCalled");
-
-        //Set the currently logged in user deaths
-        //var DBTask = DBreference.Child("games").push;
-        string key = DBreference.Child("games").Push().Key;
-        string json = JsonUtility.ToJson(_game);
+        string key = DBreference.Child("games").Push().Key; //create a new unique ID for the game
+        string json = JsonUtility.ToJson(_game); //covert game object to JSON
 
         var DBTask = DBreference.Child("games").Child(key).SetRawJsonValueAsync(json);
 
-
-        //DBreference.UpdateChildrenAsync(_game);
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
-        foreach(string player in _game.players)
+        foreach(string player in _game.players) //Add game ID to all players that were in that game session
         {
             var playerD = JsonConvert.DeserializeObject<Dictionary<string, string>>(player);
             var DBTaskP = DBreference.Child("users").Child(playerD["netId"]).Child("games").Child(key).SetValueAsync(DateTime.Now.ToString());
@@ -575,38 +442,19 @@ public class LoginManager : NetworkBehaviour
             newGame.transform.SetParent(replayList.transform, false);
         }
 
-        //DataSnapshot allGamesResult = DBTask.Result;
-
-
-
     }
+
     public IEnumerator SetOnlineStatus(string _id, bool _status)
     {
         //Set the currently logged in user deaths
         var DBTask = DBreference.Child("users").Child(_id).Child("status").Child("online").SetValueAsync(_status);
-
+        //set users online status
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            //Deaths are now updated
-        }
         DBTask = DBreference.Child("users").Child(_id).Child("status").Child("ClientID").SetValueAsync(NetworkManager.Singleton.LocalClientId.ToString());
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            //Deaths are now updated
-        }
     }
 
     public void quickAdd(string _username, string _id, string targetId)
@@ -624,11 +472,10 @@ public class LoginManager : NetworkBehaviour
         bool playerFound = false;
         if (DBTask.Exception != null)
         {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+            Debug.Log(DBTask.Exception);
         }
         else
         {
-            //Data has been retrieved
             DataSnapshot snapshot = DBTask.Result;
 
             //Loop through every users UID
@@ -638,7 +485,7 @@ public class LoginManager : NetworkBehaviour
                 {
                     continue;
                 }
-                if(childSnapshot.Child("username").Value.ToString() == _username)
+                if(childSnapshot.Child("username").Value.ToString() == _username) //find the username
                 {
                     Friend friend = new Friend(User.DisplayName, User.UserId);
                     StartCoroutine(sendFriendRequest(childSnapshot.Key, friend));
@@ -648,7 +495,7 @@ public class LoginManager : NetworkBehaviour
                     playerFound = true;
                 }
             }
-            if(!playerFound)
+            if(!playerFound) //username not found, set error message
             {
                 sendFriendText.text = "No player w/ username '" + _username +"' found.";
                 yield return new WaitForSeconds(2);
@@ -661,76 +508,37 @@ public class LoginManager : NetworkBehaviour
     public IEnumerator sendFriendRequest(string _userId, Friend _friend)
     {
         string json = JsonUtility.ToJson(_friend);
-        //Set the currently logged in user deaths
-        //string key = DBreference.Child("friend_requests").Push()._friend.;
+
         var DBTask = DBreference.Child("users").Child(_userId).Child("friend_requests").Child(_friend.id).SetRawJsonValueAsync(json);
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            Debug.Log("Sent friend request to " + _friend.username);
-            //Deaths are now updated
-        }
     }
 
     public IEnumerator acceptFriendRequest(string _userId, Friend _friend, Friend _senderFriend)
     {
-
+        //add each others user ID to the 'friends' field
         string json = JsonUtility.ToJson(_friend);
-        //Set the currently logged in user deaths
-        //string key = DBreference.Child("friends").Push().Key;
+
         var DBTask = DBreference.Child("users").Child(_userId).Child("friends").Child(_friend.id).SetRawJsonValueAsync(json);
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            //Debug.Log("Sent friend request to " + _friend.username);
-            //Deaths are now updated
-        }
-
         json = JsonUtility.ToJson(_senderFriend);
-        //Set the currently logged in user deaths
-        //string key = DBreference.Child("friends").Push().Key;
+
         DBTask = DBreference.Child("users").Child(_friend.id).Child("friends").Child(_senderFriend.id).SetRawJsonValueAsync(json);
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            //Debug.Log("Sent friend request to " + _friend.username);
-            //Deaths are now updated
-        }
     }
 
     public IEnumerator removeFriendRequest(string _userId, string _FRID)
     {
+        //remove friends requests from users DB field
         var DBTask = DBreference.Child("users").Child(_userId).Child("friend_requests").Child(_FRID).RemoveValueAsync();
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-        else
-        {
-            //Debug.Log("Sent friend request to " + _friend.username);
-            //Deaths are now updated
-        }
     }
 
 private IEnumerator UpdateFriendRequests(string _id)
@@ -742,7 +550,7 @@ private IEnumerator UpdateFriendRequests(string _id)
 
         if (DBTask.Exception != null)
         {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+            Debug.LogWarning(DBTask.Exception);
         }
 
         else if (DBTask.Result.Value == null)
@@ -782,16 +590,12 @@ private IEnumerator UpdateFriendRequests(string _id)
 
         if (DBTask.Exception != null)
         {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+            Debug.LogWarning(DBTask.Exception);
         }
 
-        else if (DBTask.Result.Value == null)
-        {
-        }
         else
         {
             Debug.Log("Load Friend Request");
-            //Data has been retrieved
             DataSnapshot snapshot = DBTask.Result;
             foreach (Transform child in friendsListGo.transform)
             {
@@ -910,15 +714,9 @@ private IEnumerator UpdateFriendRequests(string _id)
 
     private IEnumerator UpdateFriendsListInGame(string _id)
     {
-        //Get the currently logged in user data
         var DBTask = DBreference.Child("users").Child(_id).Child("friends").GetValueAsync();
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
-
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
 
         var DBTask2 = DBreference.Child("online_players").GetValueAsync();
 
@@ -926,16 +724,11 @@ private IEnumerator UpdateFriendRequests(string _id)
 
         if (DBTask.Exception != null)
         {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
-
-        else if (DBTask.Result.Value == null)
-        {
+            Debug.LogWarning(DBTask.Exception);
         }
         else
         {
             Debug.Log("Load Friend Request");
-            //Data has been retrieved
             DataSnapshot snapshot = DBTask.Result;
             DataSnapshot snapshot2 = DBTask2.Result;
 
@@ -968,19 +761,15 @@ private IEnumerator UpdateFriendRequests(string _id)
 
     public IEnumerator clientDisconnectDB(string _id)
     {
-               //Get the currently logged in user data
         var DBTask = DBreference.Child("online_players").GetValueAsync();
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
         if (DBTask.Exception != null)
         {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
+            Debug.LogWarning(DBTask.Exception);
         }
 
-        else if (DBTask.Result.Value == null)
-        {
-        }
         else
         {
             //Data has been retrieved
@@ -1011,16 +800,9 @@ private IEnumerator UpdateFriendRequests(string _id)
 
     private IEnumerator SendGameInviteDB(string _id, string _lobbyName, string _username)
     {
-        //Get the currently logged in user data
         var DBTask = DBreference.Child("online_players").GetValueAsync();
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
-        Debug.Log("Send invite - coroutine");
-
-        if (DBTask.Exception != null)
-        {
-            Debug.LogWarning(message: $"Failed to register task with {DBTask.Exception}");
-        }
 
         DataSnapshot snapshot = DBTask.Result;
 
@@ -1028,12 +810,9 @@ private IEnumerator UpdateFriendRequests(string _id)
         {
             if(dataSnapshot.Key == _id)
             {
-                        Debug.Log("Send invite - idFound: " +_id );
-
                 sendInviteServerRpc(_lobbyName, _username, dataSnapshot.Child("ClientID").Value.ToString());
             }
         }
-
     }
 
     public void populateLeaderboard(string _id, string _sortBy, bool _friendOnly)
@@ -1047,6 +826,7 @@ private IEnumerator UpdateFriendRequests(string _id)
         {
             Destroy(item.gameObject);
         }
+
         var DBTask = DBreference.Child("users").OrderByChild(_sortBy).GetValueAsync();
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);
 
@@ -1064,12 +844,10 @@ private IEnumerator UpdateFriendRequests(string _id)
             foreach(DataSnapshot friend in friends.Children)
             {
                 friendIds.Add(friend.Key.ToString());
-                //Debug.Log("Added: " + friend.Key.ToString());
             }
            
             foreach(DataSnapshot user in result.Children.Reverse<DataSnapshot>())
             {
-                //Debug.Log(user.Key);
                 if(friendIds.Contains(user.Key.ToString()))
                 {
                     GameObject leadPlayer = Instantiate(leadPlayerGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
@@ -1087,7 +865,6 @@ private IEnumerator UpdateFriendRequests(string _id)
             foreach(DataSnapshot user in result.Children.Reverse<DataSnapshot>())
             {
                 GameObject leadPlayer = Instantiate(leadPlayerGo, new Vector3(transform.position.x,transform.position.y, transform.position.z) , Quaternion.identity);
-                //Debug.Log(user.Value.ToString());
                 leadPlayer.transform.Find("text").GetComponent<TextMeshProUGUI>().text = String.Format("{0} {1} | ${2} | XP: {3}xp | Hands Played: {4} | Wins: {5} | Biggest Win: ${6}",
                     i, user.Child("username").Value.ToString(), user.Child("cash").Value.ToString(), user.Child("xp").Value.ToString(), user.Child("hands_played").Value.ToString(),
                     user.Child("hands_won").Value.ToString(), user.Child("biggest_win").Value.ToString());
@@ -1109,7 +886,6 @@ private IEnumerator UpdateFriendRequests(string _id)
 
         yield return new WaitUntil(predicate: () => DBTask.IsCompleted);  
         DataSnapshot snapshot = DBTask.Result;
-
 
         var DBTask2 = DBreference.Child("users").Child(senderId).Child("friends").Child(_id).GetValueAsync();
 
@@ -1212,8 +988,5 @@ private IEnumerator UpdateFriendRequests(string _id)
             this.id = _id;
         }
     }
-
-
-
 
 }

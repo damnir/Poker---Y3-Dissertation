@@ -2,14 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using MLAPI;
-using MLAPI.Spawning;
-using MLAPI.Messaging;
-using MLAPI.Transports.UNET;
-using MLAPI.Serialization.Pooled;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using MLAPI.NetworkVariable;
 using System;
 using UnityEngine.UI;
 using static MLAPI.Spawning.NetworkSpawnManager;
@@ -60,21 +52,8 @@ public class Lobby : NetworkBehaviour
             }
 
             GameObject.Find("Menu").SetActive(false);
-            /*
-            GameObject player = lobbyManager.getPlayerGoById(NetworkManager.Singleton.LocalClientId);
-            player.GetComponent<Player>().changeLobby(lobby);
-
-            foreach(GameObject room in lobbyManager.lobbies)
-            {
-                if (room.name != lobby.name)
-                {
-                    room.SetActive(false);
-                }
-            }*/
 
             Player player = GetLocalPlayerObject().GetComponent<Player>();
-            //GetLocalPlayerObject().GetComponent<Player>().changeLobby(lobby);
-            //player.currentLobby = null;
 
             player.changeLobby(lobby);
 
