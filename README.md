@@ -1,3 +1,5 @@
+NOTES FOR MARKERS:
+
 # Libraries and Dependencies
 Following libraries and SDKs need to be manually added to the Unity Project in order to compile it:
 
