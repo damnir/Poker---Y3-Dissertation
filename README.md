@@ -22,6 +22,6 @@ To build the client application, open the project and enable the `Client` script
 # Executables
 A pre-compiled executable version of the server application (for Windows) can be found in the source code under 'ServerBuild' folder.
 
-> Note: the server application is configured to listen for connections on my personal server (Windows PC) on my public IP address that is port forwarded to the server; IP: 82.2.204.171 Port: 7777 
+> Note: the server application is configured to listen for connections on my personal server (Windows PC) on my public IP address that is port forwarded to the server; IP: xx Port: xx
 
 A pre-compiled client-side .apk file for Android OS can be found in the source code under 'AndroidBuild' folder. Also configured to connect to the above IP address and port.
